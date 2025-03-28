@@ -8,7 +8,7 @@ import { FaEdit } from "react-icons/fa";
 import { Card } from "@/components/ui/card";
 import { getAppointment, Appointment, Patient } from "@/lib/supabase";
 import { toast } from "sonner";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 
 // Type for the appointment with joined patient data
 type ExtendedAppointment = Appointment & {
@@ -17,7 +17,6 @@ type ExtendedAppointment = Appointment & {
 
 export default function AppointmentDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const appointmentId = params.id as string;
   
   const [appointment, setAppointment] = useState<ExtendedAppointment | null>(null);

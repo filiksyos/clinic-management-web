@@ -38,4 +38,6 @@ export const FormSelect = forwardRef<HTMLSelectElement, FormSelectProps>(
       </div>
     );
   }
-); 
+);
+
+FormSelect.displayName = "FormSelect"; 

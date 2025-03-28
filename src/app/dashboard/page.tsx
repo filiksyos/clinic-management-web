@@ -80,7 +80,7 @@ export default function Dashboard() {
             Email: receptionist@clinic.com
           </p>
           <p className="text-gray-600">
-            You're now logged in to the clinic management system.
+            You&apos;re now logged in to the clinic management system.
           </p>
         </div>
 

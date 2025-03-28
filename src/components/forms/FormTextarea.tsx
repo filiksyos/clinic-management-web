@@ -26,4 +26,6 @@ export const FormTextarea = forwardRef<HTMLTextAreaElement, FormTextareaProps>(
       </div>
     );
   }
-); 
+);
+
+FormTextarea.displayName = "FormTextarea"; 

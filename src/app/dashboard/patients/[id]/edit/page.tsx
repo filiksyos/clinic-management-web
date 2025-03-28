@@ -7,7 +7,7 @@ import { ArrowLeftOutlined } from "@ant-design/icons";
 import { Card } from "@/components/ui/card";
 import { FormInput } from "@/components/forms/FormInput";
 import { FormSelect } from "@/components/forms/FormSelect";
-import { getPatient, updatePatient, Patient } from "@/lib/supabase";
+import { getPatient, updatePatient } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useParams, useRouter } from "next/navigation";
 
