@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { BsSlash } from "react-icons/bs";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import { Card } from "@/components/ui/card";
 import { FormInput } from "@/components/forms/FormInput";

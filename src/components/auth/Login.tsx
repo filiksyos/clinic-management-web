@@ -36,7 +36,7 @@ const LoginPage = () => {
     setIsLoading(true);
     
     try {
-      const { data, error } = await signIn(formValues.email, formValues.password);
+      const { error } = await signIn(formValues.email, formValues.password);
 
       if (error) {
         toast.error(error.message);
@@ -49,8 +49,9 @@ const LoginPage = () => {
       // Simple redirect to dashboard
       window.location.href = '/dashboard';
       
-    } catch (err: any) {
-      toast.error(err.message || "Failed to sign in");
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to sign in";
+      toast.error(errorMessage);
       setIsLoading(false);
     }
   };

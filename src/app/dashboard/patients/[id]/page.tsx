@@ -6,13 +6,12 @@ import { BsSlash } from "react-icons/bs";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import { FaEdit } from "react-icons/fa";
 import { Card } from "@/components/ui/card";
-import { getPatient, Patient } from "@/lib/supabase";
+import { getPatient, type Patient } from "@/lib/supabase";
 import { toast } from "sonner";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 
 export default function PatientDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const patientId = params.id as string;
   
   const [patient, setPatient] = useState<Patient | null>(null);
