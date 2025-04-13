@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "./Navbar";
-import { FaCalendarCheck, FaUserInjured } from "react-icons/fa";
+import { FaCalendarCheck, FaUserInjured, FaNotesMedical, FaStethoscope } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md";
+import { useAuth } from "@/context/AuthContext";
+import { UserRole } from "@/lib/supabase";
 
 const NavLink = ({
   href,
@@ -85,6 +87,16 @@ const CollapsibleMenu = ({
 
 export default function SideBar() {
   const [isSideNavOpen, setIsSideNavOpen] = useState(true);
+  const { user } = useAuth();
+  const [userRole, setUserRole] = useState<UserRole>('receptionist');
+
+  useEffect(() => {
+    if (user) {
+      // Get the role from user metadata
+      const role = user.app_metadata?.role as UserRole;
+      setUserRole(role || 'receptionist');
+    }
+  }, [user]);
 
   return (
     <>
@@ -109,28 +121,60 @@ export default function SideBar() {
         <nav>
           <ul className="px-3 space-y-1">
             <li className="px-3 mb-4 text-[#6A7187]">Dashboard</li>
-            <NavLink href="/dashboard">
+            <NavLink href={userRole === 'doctor' ? "/doctor" : "/dashboard"}>
               <MdDashboard className="text-xl" />
               <div className="flex w-full truncate text-sm">Dashboard</div>
             </NavLink>
 
             <li className="px-3 !mt-3 mb-2 text-[#6A7187]">Hospital</li>
             
-            <CollapsibleMenu title="Patient" icon={<FaUserInjured />}>
-              <NavLink href="/dashboard/patients">List of Patients</NavLink>
-              <NavLink href="/dashboard/patients/create">
-                Add New Patient
-              </NavLink>
-            </CollapsibleMenu>
+            {userRole === 'receptionist' && (
+              <>
+                <CollapsibleMenu title="Patient" icon={<FaUserInjured />}>
+                  <NavLink href="/dashboard/patients">List of Patients</NavLink>
+                  <NavLink href="/dashboard/patients/create">
+                    Add New Patient
+                  </NavLink>
+                </CollapsibleMenu>
 
-            <CollapsibleMenu title="Appointments" icon={<FaCalendarCheck />}>
-              <NavLink href="/dashboard/appointments">
-                List of Appointments
-              </NavLink>
-              <NavLink href="/dashboard/appointments/create">
-                Add New Appointment
-              </NavLink>
-            </CollapsibleMenu>
+                <CollapsibleMenu title="Appointments" icon={<FaCalendarCheck />}>
+                  <NavLink href="/dashboard/appointments">
+                    List of Appointments
+                  </NavLink>
+                  <NavLink href="/dashboard/appointments/create">
+                    Add New Appointment
+                  </NavLink>
+                </CollapsibleMenu>
+              </>
+            )}
+
+            {userRole === 'doctor' && (
+              <>
+                <CollapsibleMenu title="My Patients" icon={<FaUserInjured />}>
+                  <NavLink href="/doctor/patients">View Patients</NavLink>
+                </CollapsibleMenu>
+
+                <CollapsibleMenu title="Appointments" icon={<FaCalendarCheck />}>
+                  <NavLink href="/doctor/appointments">
+                    Today's Appointments
+                  </NavLink>
+                  <NavLink href="/doctor/appointments/upcoming">
+                    Upcoming Appointments
+                  </NavLink>
+                </CollapsibleMenu>
+
+                <CollapsibleMenu title="Medical Records" icon={<FaNotesMedical />}>
+                  <NavLink href="/doctor/records">
+                    Patient Records
+                  </NavLink>
+                </CollapsibleMenu>
+
+                <NavLink href="/doctor/consultations">
+                  <FaStethoscope className="text-xl" />
+                  <div className="flex w-full truncate text-sm">Consultations</div>
+                </NavLink>
+              </>
+            )}
           </ul>
         </nav>
       </aside>

@@ -27,6 +27,25 @@ export interface Appointment {
   updated_at: string
 }
 
+// Role type and authentication helpers
+export type UserRole = 'receptionist' | 'doctor';
+
+export async function getUserRole(userId: string): Promise<UserRole> {
+  try {
+    const { data, error } = await supabase.auth.getUser();
+    
+    if (error) {
+      throw error;
+    }
+    
+    const role = data.user?.app_metadata?.role as UserRole;
+    return role || 'receptionist'; // Default to receptionist if no role found
+  } catch (error) {
+    console.error('Error getting user role:', error);
+    return 'receptionist';
+  }
+}
+
 // Patient functions
 export async function getPatients() {
   const { data, error } = await supabase
@@ -88,6 +107,33 @@ export async function getAppointments() {
     .from('appointments')
     .select('*, patients(*)')
     .order('appointment_date', { ascending: false })
+  
+  if (error) throw error
+  return data
+}
+
+export async function getAppointmentsForDoctor() {
+  const { data, error } = await supabase
+    .from('appointments')
+    .select('*, patients(*)')
+    .eq('status', 'scheduled') // Doctors primarily see scheduled appointments
+    .order('appointment_date', { ascending: true })
+  
+  if (error) throw error
+  return data
+}
+
+export async function getTodaysAppointments() {
+  const today = new Date();
+  const startOfDay = new Date(today.setHours(0, 0, 0, 0)).toISOString();
+  const endOfDay = new Date(today.setHours(23, 59, 59, 999)).toISOString();
+  
+  const { data, error } = await supabase
+    .from('appointments')
+    .select('*, patients(*)')
+    .gte('appointment_date', startOfDay)
+    .lte('appointment_date', endOfDay)
+    .order('appointment_date', { ascending: true })
   
   if (error) throw error
   return data

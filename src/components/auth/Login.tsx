@@ -4,11 +4,18 @@ import { Button } from "@/components/ui/button";
 import React, { useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
+import { UserRole } from "@/lib/supabase";
 
 // Default receptionist credentials
 const receptionistCredentials = {
   email: "receptionist@clinic.com",
   password: "clinic123",
+};
+
+// Default doctor credentials
+const doctorCredentials = {
+  email: "doctornew@clinic.com",
+  password: "password123",
 };
 
 const LoginPage = () => {
@@ -36,7 +43,7 @@ const LoginPage = () => {
     setIsLoading(true);
     
     try {
-      const { error } = await signIn(formValues.email, formValues.password);
+      const { data, error } = await signIn(formValues.email, formValues.password);
 
       if (error) {
         toast.error(error.message);
@@ -46,13 +53,32 @@ const LoginPage = () => {
 
       toast.success("Login successful!");
       
-      // Simple redirect to dashboard
-      window.location.href = '/dashboard';
+      // Redirect based on user role
+      const userRole = data.user?.app_metadata?.role as UserRole;
+      if (userRole === 'doctor') {
+        window.location.href = '/doctor';
+      } else {
+        window.location.href = '/dashboard';
+      }
       
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Failed to sign in";
       toast.error(errorMessage);
       setIsLoading(false);
+    }
+  };
+
+  const handleDemoLogin = (type: 'receptionist' | 'doctor') => {
+    if (type === 'receptionist') {
+      setFormValues({
+        email: receptionistCredentials.email,
+        password: receptionistCredentials.password,
+      });
+    } else {
+      setFormValues({
+        email: doctorCredentials.email,
+        password: doctorCredentials.password,
+      });
     }
   };
 
@@ -112,11 +138,33 @@ const LoginPage = () => {
               </Button>
             </form>
 
-            {/* Default Credentials Information */}
+            {/* Demo Login Options */}
             <div className="mt-6 p-4 border rounded-md bg-gray-50">
-              <h3 className="text-md text-gray-500 font-medium">Default Receptionist Credentials:</h3>
-              <p className="text-sm text-gray-600">Email: {receptionistCredentials.email}</p>
-              <p className="text-sm text-gray-600">Password: {receptionistCredentials.password}</p>
+              <h3 className="text-md text-gray-700 font-medium mb-3">Quick Login Options:</h3>
+              <div className="flex flex-col space-y-2">
+                <Button 
+                  onClick={() => handleDemoLogin('receptionist')}
+                  className="w-full bg-blue-500 hover:bg-blue-600"
+                  disabled={isLoading}
+                >
+                  Login as Receptionist
+                </Button>
+                <Button 
+                  onClick={() => handleDemoLogin('doctor')}
+                  className="w-full bg-green-500 hover:bg-green-600"
+                  disabled={isLoading}
+                >
+                  Login as Doctor
+                </Button>
+              </div>
+              
+              <div className="mt-4 pt-4 border-t">
+                <h4 className="text-sm text-gray-500 mb-2">Login Credentials:</h4>
+                <div className="text-xs text-gray-600 space-y-1">
+                  <p><strong>Receptionist:</strong> {receptionistCredentials.email} / {receptionistCredentials.password}</p>
+                  <p><strong>Doctor:</strong> {doctorCredentials.email} / {doctorCredentials.password}</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
