@@ -9,13 +9,14 @@ import { Card } from "@/components/ui/card";
 import { getAppointment, Appointment, Patient } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useParams } from "next/navigation";
+import FullPageLoader from "@/components/ui/FullPageLoader"; // Corrected import path
 
-// Type for the appointment with joined patient data
+// Type for the appointment with joined patient data (if available)
 type ExtendedAppointment = Appointment & {
-  patients: Patient;
+  patients: Patient | null; // Patient can be null if join fails or no patient found
 };
 
-export default function AppointmentDetailPage() {
+export default function DoctorAppointmentDetailPage() { // Renamed component
   const params = useParams();
   const appointmentId = params.id as string;
   
@@ -24,10 +25,15 @@ export default function AppointmentDetailPage() {
 
   useEffect(() => {
     const fetchAppointment = async () => {
+       if (!appointmentId) { 
+         setIsLoading(false);
+         return;
+       }
       try {
         setIsLoading(true);
+        // Assuming getAppointment fetches the patient details
         const data = await getAppointment(appointmentId);
-        setAppointment(data);
+        setAppointment(data as ExtendedAppointment); // Cast to ExtendedAppointment
       } catch (error) {
         console.error("Error fetching appointment:", error);
         toast.error("Failed to load appointment details");
@@ -40,11 +46,7 @@ export default function AppointmentDetailPage() {
   }, [appointmentId]);
 
   if (isLoading) {
-    return (
-      <div className="mx-5 flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-      </div>
-    );
+    return <FullPageLoader />; 
   }
 
   if (!appointment) {
@@ -53,8 +55,9 @@ export default function AppointmentDetailPage() {
         <div className="text-center">
           <h3 className="text-lg font-medium text-gray-900">Appointment not found</h3>
           <div className="mt-2">
+            {/* Updated link */}
             <Link
-              href="/dashboard/appointments"
+              href="/doctor/dashboard/appointments"
               className="text-blue-600 hover:text-blue-800"
             >
               Return to appointments list
@@ -80,38 +83,38 @@ export default function AppointmentDetailPage() {
     }
   };
 
-  // Format the appointment date
   const formattedDate = new Date(appointment.appointment_date).toLocaleString();
   
-  // Get patient name
   const patientName = appointment.patients ? 
     `${appointment.patients.first_name} ${appointment.patients.last_name}` : 
-    'Unknown Patient';
+    'Patient details not available';
 
   return (
     <div className="mx-5">
       <div className="flex items-center justify-between mt-4">
         <h2 className="text-lg text-gray-800 font-semibold">
-          Appointment Details
+          Appointment Details (Doctor View)
         </h2>
         <div className="flex items-center gap-1 text-gray-600 text-sm">
-          <Link href="/dashboard">Dashboard</Link>
+           {/* Updated breadcrumbs */}
+          <Link href="/doctor/dashboard">Doctor Dashboard</Link>
           <BsSlash className="text-[#ccc]" />
-          <Link href="/dashboard/appointments">Appointments</Link>
+          <Link href="/doctor/dashboard/appointments">Appointments</Link>
           <BsSlash className="text-[#ccc]" />
           <span>Appointment Details</span>
         </div>
       </div>
 
       <div className="mt-5 flex justify-between">
+         {/* Updated links */}
         <Link
-          href="/dashboard/appointments"
+          href="/doctor/dashboard/appointments"
           className="text-white text-sm bg-[#556ee6] py-2 px-4 rounded-md flex items-center gap-2 w-max"
         >
           <ArrowLeftOutlined /> Back to Appointments
         </Link>
         <Link
-          href={`/dashboard/appointments/${appointmentId}/edit`}
+          href={`/doctor/dashboard/appointments/${appointmentId}/edit`}
           className="text-white text-sm bg-green-600 py-2 px-4 rounded-md flex items-center gap-2 w-max"
         >
           <FaEdit size={14} /> Edit Appointment

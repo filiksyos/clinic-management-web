@@ -1,14 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { BsSlash } from "react-icons/bs";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import { Card } from "@/components/ui/card";
 import { FormInput } from "@/components/forms/FormInput";
 import { FormSelect } from "@/components/forms/FormSelect";
-import { createPatient } from "@/lib/supabase";
+import { getPatient, updatePatient } from "@/lib/supabase";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import FullPageLoader from "@/components/ui/FullPageLoader";
 
 const genderOptions = [
   { value: "male", label: "Male" },
@@ -16,15 +18,53 @@ const genderOptions = [
   { value: "other", label: "Other" },
 ];
 
-export default function CreatePatientPage() {
+export default function ReceptionistEditPatientPage() {
+  const params = useParams();
   const router = useRouter();
+  const patientId = params.id as string;
+  
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
     gender: "",
     age: "",
   });
+
+  useEffect(() => {
+    const fetchPatient = async () => {
+       if (!patientId) { 
+         setIsFetching(false);
+         return;
+       }
+      try {
+        setIsFetching(true);
+        const data = await getPatient(patientId);
+        
+        if (!data) {
+          toast.error("Patient not found");
+          router.push("/dashboard/receptionist/patients");
+          return;
+        }
+        
+        setFormData({
+          first_name: data.first_name,
+          last_name: data.last_name,
+          gender: data.gender || "",
+          age: data.age ? String(data.age) : "",
+        });
+      } catch (error) {
+        console.error("Error fetching patient:", error);
+        toast.error("Failed to load patient data");
+        router.push("/dashboard/receptionist/patients");
+      } finally {
+        setIsFetching(false);
+      }
+    };
+
+    fetchPatient();
+  }, [patientId, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -37,47 +77,52 @@ export default function CreatePatientPage() {
     try {
       setIsLoading(true);
       
-      // Convert age to number if provided
       const patientData = {
         ...formData,
         age: formData.age ? parseInt(formData.age) : undefined,
       };
       
-      await createPatient(patientData);
-      toast.success("Patient created successfully");
-      router.push("/dashboard/patients");
+      await updatePatient(patientId, patientData);
+      toast.success("Patient updated successfully");
+      router.push(`/dashboard/receptionist/patients/${patientId}`);
     } catch (error) {
-      console.error("Error creating patient:", error);
-      toast.error("Failed to create patient");
+      console.error("Error updating patient:", error);
+      toast.error("Failed to update patient");
     } finally {
       setIsLoading(false);
     }
   };
 
+  if (isFetching) {
+    return <FullPageLoader />;
+  }
+
   return (
     <div className="mx-5">
       <div className="flex items-center justify-between mt-4">
-        <h2 className="text-lg text-gray-800 font-semibold">
-          Add New Patient
+        <h2 className="text-lg text-[#495057] font-semibold">
+          Edit Patient
         </h2>
         <div className="flex items-center gap-1 text-[#495057] text-sm">
-          <Link href="/dashboard">Dashboard</Link>/
-          <Link href="/dashboard/patients">Patients</Link>/
-          <Link href="#">Add New Patient</Link>
+          <Link href="/dashboard/receptionist">Dashboard</Link>
+          <BsSlash className="text-[#ccc]" />
+          <Link href="/dashboard/receptionist/patients">Patients</Link>
+          <BsSlash className="text-[#ccc]" />
+          <span>Edit Patient</span>
         </div>
       </div>
 
       <div className="mt-5">
         <Link
-          href="/dashboard/patients"
+          href={`/dashboard/receptionist/patients/${patientId}`}
           className="text-white text-sm bg-[#556ee6] py-2 px-4 rounded-md flex items-center gap-2 w-max"
         >
-          <ArrowLeftOutlined /> Back to Patient List
+          <ArrowLeftOutlined /> Back to Patient Details
         </Link>
       </div>
 
       <Card className="mt-8 p-6">
-        <div className="w-full border border-gray-200 rounded-md border-l-blue-500 px-4 py-4 mb-6 text-gray-800">
+        <div className="w-full border border-gray-200 rounded-md border-l-blue-500 px-4 py-4 mb-6">
           Patient Information
         </div>
 
@@ -125,15 +170,16 @@ export default function CreatePatientPage() {
               {isLoading ? (
                 <>
                   <div className="animate-spin h-4 w-4 border-2 border-white rounded-full border-t-transparent"></div>
-                  Saving...
+                  Updating...
                 </>
               ) : (
-                "Save Patient"
+                "Update Patient"
               )}
             </button>
           </div>
         </form>
       </Card>
+      {isLoading && <FullPageLoader />}
     </div>
   );
 } 

@@ -5,16 +5,22 @@ import React, { useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 
-// Default receptionist credentials
-const receptionistCredentials = {
-  email: "receptionist@clinic.com",
-  password: "clinic123",
+// User role credentials
+const userCredentials = {
+  receptionist: {
+    email: "receptionist@clinic.com",
+    password: "clinic123",
+  },
+  doctor: {
+    email: "doctor@clinic.com", // Assuming same password for doctor for now
+    password: "clinic123",
+  }
 };
 
 const LoginPage = () => {
   const [formValues, setFormValues] = useState({
-    email: receptionistCredentials.email,
-    password: receptionistCredentials.password,
+    email: userCredentials.receptionist.email,
+    password: userCredentials.receptionist.password,
   });
   const [isLoading, setIsLoading] = useState(false);
   
@@ -36,24 +42,31 @@ const LoginPage = () => {
     setIsLoading(true);
     
     try {
+      // Sign in handled by AuthContext now, including redirection
       const { error } = await signIn(formValues.email, formValues.password);
 
       if (error) {
         toast.error(error.message);
-        setIsLoading(false);
-        return;
+      } else {
+        toast.success("Login successful! Redirecting...");
+        // Redirection is handled within AuthContext after successful sign-in
       }
-
-      toast.success("Login successful!");
-      
-      // Simple redirect to dashboard
-      window.location.href = '/dashboard';
       
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Failed to sign in";
       toast.error(errorMessage);
+    } finally {
       setIsLoading(false);
     }
+  };
+
+  // Function to set default credentials based on selected role
+  const setUserCredentials = (role: 'receptionist' | 'doctor') => {
+    setFormValues({
+      email: userCredentials[role].email,
+      password: userCredentials[role].password,
+    });
+    toast.info(`${role.charAt(0).toUpperCase() + role.slice(1)} credentials loaded.`);
   };
 
   return (
@@ -88,6 +101,7 @@ const LoginPage = () => {
                   disabled={isLoading}
                 />
               </div>
+              
               <div className="mb-6">
                 <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
                   Password
@@ -106,7 +120,7 @@ const LoginPage = () => {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="mt-4 w-full rounded-md bg-[#485EC4] px-4 py-2 text-white"
+                className="mt-4 w-full rounded-md bg-[#485EC4] px-4 py-2 text-white hover:bg-[#3A4B9E]"
               >
                 {isLoading ? "Signing in..." : "Login"}
               </Button>
@@ -114,9 +128,31 @@ const LoginPage = () => {
 
             {/* Default Credentials Information */}
             <div className="mt-6 p-4 border rounded-md bg-gray-50">
-              <h3 className="text-md text-gray-500 font-medium">Default Receptionist Credentials:</h3>
-              <p className="text-sm text-gray-600">Email: {receptionistCredentials.email}</p>
-              <p className="text-sm text-gray-600">Password: {receptionistCredentials.password}</p>
+              <h3 className="text-md text-gray-500 font-medium mb-3">Use Default Credentials:</h3>
+              <div className="flex gap-3">
+                 <Button 
+                   variant="outline" 
+                   size="sm" 
+                   onClick={() => setUserCredentials('receptionist')} 
+                   disabled={isLoading}
+                   className="flex-1"
+                 >
+                   Receptionist
+                 </Button>
+                 <Button 
+                   variant="outline" 
+                   size="sm" 
+                   onClick={() => setUserCredentials('doctor')} 
+                   disabled={isLoading}
+                   className="flex-1"
+                 >
+                   Doctor
+                 </Button>
+              </div>
+              <div className="mt-3 text-sm text-gray-600">
+                <p>Email: {formValues.email}</p>
+                <p>Password: {formValues.password}</p>
+              </div>
             </div>
           </div>
         </div>

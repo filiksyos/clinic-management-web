@@ -2,41 +2,81 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { BsSlash } from "react-icons/bs";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import { Card } from "@/components/ui/card";
 import { FormSelect } from "@/components/forms/FormSelect";
 import { FormInput } from "@/components/forms/FormInput";
 import { FormTextarea } from "@/components/forms/FormTextarea";
-import { createAppointment, getPatients, Patient, Appointment } from "@/lib/supabase";
+import { 
+  getAppointment, 
+  updateAppointment, 
+  getPatients, 
+  Patient, 
+  Appointment 
+} from "@/lib/supabase";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import FullPageLoader from "@/components/ui/FullPageLoader"; // Corrected import path
 
 type AppointmentStatus = Appointment['status'];
 
-export default function CreateAppointmentPage() {
+export default function DoctorEditAppointmentPage() { // Renamed component
+  const params = useParams();
   const router = useRouter();
+  const appointmentId = params.id as string;
+  
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [formData, setFormData] = useState({
     patient_id: "",
     appointment_date: "",
-    status: "scheduled" as AppointmentStatus, // Type assertion
+    status: "scheduled" as AppointmentStatus,
     notes: "",
   });
 
   useEffect(() => {
-    async function fetchPatients() {
+    async function fetchData() {
+       if (!appointmentId) { 
+         setIsFetching(false);
+         return;
+       }
       try {
-        const data = await getPatients();
-        setPatients(data);
+        setIsFetching(true);
+        const [appointmentData, patientsData] = await Promise.all([
+          getAppointment(appointmentId),
+          getPatients(),
+        ]);
+        
+        if (!appointmentData) {
+          toast.error("Appointment not found");
+          router.push("/doctor/dashboard/appointments"); // Redirect to doctor list
+          return;
+        }
+        
+        setPatients(patientsData);
+        
+        const appointmentDate = new Date(appointmentData.appointment_date);
+        const formattedDate = appointmentDate.toISOString().slice(0, 16);
+        
+        setFormData({
+          patient_id: appointmentData.patient_id,
+          appointment_date: formattedDate,
+          status: appointmentData.status,
+          notes: appointmentData.notes || "",
+        });
       } catch (error) {
-        console.error("Error fetching patients:", error);
-        toast.error("Failed to load patients");
+        console.error("Error fetching data:", error);
+        toast.error("Failed to load appointment data");
+        router.push("/doctor/dashboard/appointments"); // Redirect to doctor list
+      } finally {
+        setIsFetching(false);
       }
     }
 
-    fetchPatients();
-  }, []);
+    fetchData();
+  }, [appointmentId, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -61,18 +101,17 @@ export default function CreateAppointmentPage() {
     
     try {
       setIsLoading(true);
-      await createAppointment(formData);
-      toast.success("Appointment created successfully");
-      router.push("/dashboard/appointments");
+      await updateAppointment(appointmentId, formData);
+      toast.success("Appointment updated successfully");
+      router.push(`/doctor/dashboard/appointments/${appointmentId}`); // Redirect to doctor detail page
     } catch (error) {
-      console.error("Error creating appointment:", error);
-      toast.error("Failed to create appointment");
+      console.error("Error updating appointment:", error);
+      toast.error("Failed to update appointment");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Convert patients to options format for FormSelect
   const patientOptions = patients.map(patient => ({
     value: patient.id,
     label: `${patient.first_name} ${patient.last_name}`
@@ -85,32 +124,40 @@ export default function CreateAppointmentPage() {
     { value: "no-show", label: "No Show" },
   ];
 
-  const todayDate = new Date().toISOString().split('T')[0];
+   const todayDate = new Date().toISOString().slice(0, 16);
+
+  if (isFetching) {
+    return <FullPageLoader />;
+  }
 
   return (
     <div className="mx-5">
       <div className="flex items-center justify-between mt-4">
-        <h2 className="text-lg text-gray-800 font-semibold">
-          Create Appointment
+        <h2 className="text-lg text-[#495057] font-semibold">
+          Edit Appointment (Doctor View)
         </h2>
         <div className="flex items-center gap-1 text-[#495057] text-sm">
-          <Link href="/dashboard">Dashboard</Link>/
-          <Link href="/dashboard/appointments">Appointments</Link>/
-          <Link href="#">Create Appointment</Link>
+           {/* Updated breadcrumbs */}
+          <Link href="/doctor/dashboard">Doctor Dashboard</Link>
+          <BsSlash className="text-[#ccc]" />
+          <Link href="/doctor/dashboard/appointments">Appointments</Link>
+          <BsSlash className="text-[#ccc]" />
+          <span>Edit Appointment</span>
         </div>
       </div>
 
       <div className="mt-5">
+        {/* Updated back link */}
         <Link
-          href="/dashboard/appointments"
+          href={`/doctor/dashboard/appointments/${appointmentId}`}
           className="text-white text-sm bg-[#556ee6] py-2 px-4 rounded-md flex items-center gap-2 w-max"
         >
-          <ArrowLeftOutlined /> Back to Appointments
+          <ArrowLeftOutlined /> Back to Appointment Details
         </Link>
       </div>
 
       <Card className="mt-8 p-6">
-        <div className="w-full border border-gray-200 rounded-md border-l-blue-500 px-4 py-4 mb-6 text-gray-800">
+        <div className="w-full border border-gray-200 rounded-md border-l-blue-500 px-4 py-4 mb-6">
           Appointment Information
         </div>
 
@@ -130,7 +177,7 @@ export default function CreateAppointmentPage() {
             type="datetime-local"
             value={formData.appointment_date}
             onChange={handleChange}
-            min={todayDate}
+            min={todayDate} // Set min attribute for date-time
             required
           />
 
@@ -160,15 +207,17 @@ export default function CreateAppointmentPage() {
               {isLoading ? (
                 <>
                   <div className="animate-spin h-4 w-4 border-2 border-white rounded-full border-t-transparent"></div>
-                  Creating...
+                  Updating...
                 </>
               ) : (
-                "Create Appointment"
+                "Update Appointment"
               )}
             </button>
           </div>
         </form>
       </Card>
+       {/* Render loader overlay if form is submitting */}
+      {isLoading && <FullPageLoader />}
     </div>
   );
 } 

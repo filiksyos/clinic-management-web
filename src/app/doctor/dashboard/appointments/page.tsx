@@ -7,12 +7,13 @@ import { Card } from "@/components/ui/card";
 import { getAppointments, deleteAppointment, getPatients, Appointment, Patient } from "@/lib/supabase";
 import { toast } from "sonner";
 import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
+import FullPageLoader from "@/components/ui/FullPageLoader"; // Corrected import path
 
 type ExtendedAppointment = Appointment & {
   patients: Patient;
 };
 
-export default function AppointmentsPage() {
+export default function DoctorAppointmentsPage() { // Renamed component
   const [appointments, setAppointments] = useState<ExtendedAppointment[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -20,12 +21,14 @@ export default function AppointmentsPage() {
   const fetchData = async () => {
     try {
       setIsLoading(true);
+      // TODO: Filter appointments by doctor if needed
       const [appointmentsData, patientsData] = await Promise.all([
         getAppointments(),
         getPatients(),
       ]);
       
-      setAppointments(appointmentsData);
+      // Assuming appointmentsData has the patient relationship included
+      setAppointments(appointmentsData as ExtendedAppointment[]); 
       setPatients(patientsData);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -77,21 +80,23 @@ export default function AppointmentsPage() {
       <div className="flex items-center justify-between mt-2">
         <div>
           <h2 className="text-lg text-gray-800 font-semibold">
-            APPOINTMENT LIST
+            APPOINTMENT LIST (Doctor View)
           </h2>
         </div>
         <div className="flex items-center gap-1 text-gray-600 text-sm">
-          <Link href="/dashboard" className="">
-            Dashboard
+          {/* Updated breadcrumbs */}
+          <Link href="/doctor/dashboard" className="">
+            Doctor Dashboard
           </Link>
           <BsSlash className="text-[#ccc]" />
-          <Link href="/dashboard/appointments/">Appointments</Link>
+          <Link href="/doctor/dashboard/appointments/">Appointments</Link>
         </div>
       </div>
       
       <div className="mt-5">
+        {/* Updated link */}
         <Link
-          href="/dashboard/appointments/create"
+          href="/doctor/dashboard/appointments/create"
           className="text-white text-sm bg-[#556ee6] py-2 px-4 rounded-md"
         >
           + New Appointment
@@ -100,9 +105,7 @@ export default function AppointmentsPage() {
       
       <Card className="mt-5 p-5">
         {isLoading ? (
-          <div className="flex justify-center items-center h-40">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          </div>
+          <FullPageLoader /> // Use loader
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -157,14 +160,15 @@ export default function AppointmentsPage() {
                           >
                             <FaTrash size={14} />
                           </button>
+                          {/* Updated links */}
                           <Link
-                            href={`/dashboard/appointments/${appointment.id}/edit`}
+                            href={`/doctor/dashboard/appointments/${appointment.id}/edit`}
                             className="flex items-center justify-center h-8 w-8 bg-blue-600 hover:bg-blue-700 text-white rounded-full"
                           >
                             <FaEdit size={14} />
                           </Link>
                           <Link
-                            href={`/dashboard/appointments/${appointment.id}`}
+                            href={`/doctor/dashboard/appointments/${appointment.id}`}
                             className="flex items-center justify-center h-8 w-8 bg-green-600 hover:bg-green-700 text-white rounded-full"
                           >
                             <FaEye size={14} />

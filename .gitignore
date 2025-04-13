@@ -13,6 +13,9 @@
 # testing
 /coverage
 
+# cursor
+.cursor/mcp.json
+
 # next.js
 /.next/
 /out/

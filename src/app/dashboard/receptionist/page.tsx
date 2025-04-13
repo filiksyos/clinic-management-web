@@ -5,6 +5,8 @@ import { Card } from "@/components/ui/card";
 import { FaCalendarCheck, FaUserInjured } from "react-icons/fa";
 import { HiCurrencyDollar } from "react-icons/hi2";
 import { getPatients, getAppointments } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
+import FullPageLoader from "@/components/ui/FullPageLoader";
 
 const DashboardCard = ({
   title,
@@ -34,13 +36,20 @@ const DashboardCard = ({
   );
 };
 
-export default function Dashboard() {
+export default function ReceptionistDashboardPage() {
+  const { user, userRole, isLoading: isAuthLoading } = useAuth();
   const [patientsCount, setPatientsCount] = useState<number>(0);
   const [appointmentsCount, setAppointmentsCount] = useState<number>(0);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoadingData, setIsLoadingData] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
+      if (isAuthLoading || userRole !== 'receptionist') {
+         setIsLoadingData(false);
+         return;
+      }
+      
+      setIsLoadingData(true);
       try {
         const [patientsData, appointmentsData] = await Promise.all([
           getPatients(),
@@ -52,21 +61,30 @@ export default function Dashboard() {
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
       } finally {
-        setIsLoading(false);
+        setIsLoadingData(false);
       }
     };
 
     fetchDashboardData();
-  }, []);
+  }, [isAuthLoading, userRole]);
 
-  // Calculate today's revenue (placeholder for now)
-  const todaysRevenue = "$0"; // You can implement actual revenue calculation if needed
+  const isLoading = isAuthLoading || isLoadingData;
+
+  const todaysRevenue = "$0"; 
+
+  if (isLoading) {
+      return <FullPageLoader />;
+  }
+  
+  if (userRole !== 'receptionist') {
+      return <div className="p-4 text-red-600">Access Denied. You are not logged in as a Receptionist.</div>;
+  }
 
   return (
     <div className="pt-2 px-[18px]">
       <div className="flex justify-between pb-6">
         <h1 className="font-semibold text-gray-800 uppercase tracking-wide">
-          Dashboard
+          Receptionist Dashboard
         </h1>
         <p className="text-sm font-light text-[#74788d]">
           Welcome to Dashboard
@@ -77,14 +95,14 @@ export default function Dashboard() {
         <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
           <h2 className="text-lg font-medium mb-4 text-gray-800">Welcome, Receptionist!</h2>
           <p className="text-gray-600">
-            Email: receptionist@clinic.com
+            Email: {user?.email || 'Loading...'}
           </p>
           <p className="text-gray-600">
             You&apos;re now logged in to the clinic management system.
           </p>
         </div>
 
-        <h2 className="text-lg font-medium mb-4 text-gray-800">Quick Actions</h2>
+        <h2 className="text-lg font-medium mb-4 text-gray-800">Overview</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <DashboardCard
             title="Patients"

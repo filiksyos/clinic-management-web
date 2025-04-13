@@ -7,8 +7,9 @@ import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
 import { Card } from "@/components/ui/card";
 import { getPatients, deletePatient, Patient } from "@/lib/supabase";
 import { toast } from "sonner";
+import FullPageLoader from "@/components/ui/FullPageLoader";
 
-export default function PatientsPage() {
+export default function ReceptionistPatientsPage() {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -51,17 +52,17 @@ export default function PatientsPage() {
           </h2>
         </div>
         <div className="flex items-center gap-1 text-gray-600 text-sm">
-          <Link href="/dashboard" className="">
+          <Link href="/dashboard/receptionist" className="">
             Dashboard
           </Link>
           <BsSlash className="text-[#ccc]" />
-          <Link href="/dashboard/patients/">Patients</Link>
+          <Link href="/dashboard/receptionist/patients/">Patients</Link>
         </div>
       </div>
       
       <div className="mt-5">
         <Link
-          href="/dashboard/patients/create"
+          href="/dashboard/receptionist/patients/create"
           className="text-white text-sm bg-[#556ee6] py-2 px-4 rounded-md"
         >
           + New Patient
@@ -70,9 +71,7 @@ export default function PatientsPage() {
       
       <Card className="mt-5 p-5">
         {isLoading ? (
-          <div className="flex justify-center items-center h-40">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          </div>
+          <FullPageLoader />
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -126,13 +125,13 @@ export default function PatientsPage() {
                             <FaTrash size={14} />
                           </button>
                           <Link
-                            href={`/dashboard/patients/${patient.id}/edit`}
+                            href={`/dashboard/receptionist/patients/${patient.id}/edit`}
                             className="flex items-center justify-center h-8 w-8 bg-blue-600 hover:bg-blue-700 text-white rounded-full"
                           >
                             <FaEdit size={14} />
                           </Link>
                           <Link
-                            href={`/dashboard/patients/${patient.id}`}
+                            href={`/dashboard/receptionist/patients/${patient.id}`}
                             className="flex items-center justify-center h-8 w-8 bg-green-600 hover:bg-green-700 text-white rounded-full"
                           >
                             <FaEye size={14} />

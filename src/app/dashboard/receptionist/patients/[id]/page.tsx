@@ -9,8 +9,9 @@ import { Card } from "@/components/ui/card";
 import { getPatient, type Patient } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useParams } from "next/navigation";
+import FullPageLoader from "@/components/ui/FullPageLoader";
 
-export default function PatientDetailPage() {
+export default function ReceptionistPatientDetailPage() {
   const params = useParams();
   const patientId = params.id as string;
   
@@ -19,6 +20,10 @@ export default function PatientDetailPage() {
 
   useEffect(() => {
     const fetchPatient = async () => {
+       if (!patientId) { 
+         setIsLoading(false);
+         return;
+       }
       try {
         setIsLoading(true);
         const data = await getPatient(patientId);
@@ -35,11 +40,7 @@ export default function PatientDetailPage() {
   }, [patientId]);
 
   if (isLoading) {
-    return (
-      <div className="mx-5 flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-      </div>
-    );
+    return <FullPageLoader />;
   }
 
   if (!patient) {
@@ -49,7 +50,7 @@ export default function PatientDetailPage() {
           <h3 className="text-lg font-medium text-gray-900">Patient not found</h3>
           <div className="mt-2">
             <Link
-              href="/dashboard/patients"
+              href="/dashboard/receptionist/patients"
               className="text-blue-600 hover:text-blue-800"
             >
               Return to patients list
@@ -67,9 +68,9 @@ export default function PatientDetailPage() {
           Patient Details
         </h2>
         <div className="flex items-center gap-1 text-gray-600 text-sm">
-          <Link href="/dashboard">Dashboard</Link>
+          <Link href="/dashboard/receptionist">Dashboard</Link>
           <BsSlash className="text-[#ccc]" />
-          <Link href="/dashboard/patients">Patients</Link>
+          <Link href="/dashboard/receptionist/patients">Patients</Link>
           <BsSlash className="text-[#ccc]" />
           <span>Patient Details</span>
         </div>
@@ -77,13 +78,13 @@ export default function PatientDetailPage() {
 
       <div className="mt-5 flex justify-between">
         <Link
-          href="/dashboard/patients"
+          href="/dashboard/receptionist/patients"
           className="text-white text-sm bg-[#556ee6] py-2 px-4 rounded-md flex items-center gap-2 w-max"
         >
           <ArrowLeftOutlined /> Back to Patient List
         </Link>
         <Link
-          href={`/dashboard/patients/${patientId}/edit`}
+          href={`/dashboard/receptionist/patients/${patientId}/edit`}
           className="text-white text-sm bg-green-600 py-2 px-4 rounded-md flex items-center gap-2 w-max"
         >
           <FaEdit size={14} /> Edit Patient
