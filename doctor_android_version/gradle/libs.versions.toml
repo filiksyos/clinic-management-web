@@ -31,6 +31,7 @@ ksp = "1.9.0-1.0.12"
 squareup-logging-interceptor = "4.7.2"
 viewpager2 = "1.0.0"
 koin = "3.5.0"
+supabase = "2.0.4"
 
 [libraries]
 
@@ -83,6 +84,13 @@ firebase = { group = "com.google.firebase", name = "firebase-bom", version.ref =
 analytics = { group = "com.google.firebase", name = "firebase-analytics-ktx" }
 crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics-ktx" }
 
+# Supabase dependencies
+supabase-bom = { group = "io.github.jan-tennert.supabase", name = "bom", version.ref = "supabase" }
+supabase-postgrest = { group = "io.github.jan-tennert.supabase", name = "postgrest-kt" }
+supabase-auth = { group = "io.github.jan-tennert.supabase", name = "gotrue-kt" }
+supabase-realtime = { group = "io.github.jan-tennert.supabase", name = "realtime-kt" }
+supabase-storage = { group = "io.github.jan-tennert.supabase", name = "storage-kt" }
+
 [plugins]
 com-android-application = { id = "com.android.application", version.ref = "agp" }
 com-android-library = { id = "com.android.library", version.ref = "agp" }
@@ -98,3 +106,4 @@ com-google-gms-google-services = { id = "com.google.gms.google-services", versio
 com-google-firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "crashlytics" }
 
 [bundles]
+supabase = ["supabase-postgrest", "supabase-auth", "supabase-realtime", "supabase-storage"]

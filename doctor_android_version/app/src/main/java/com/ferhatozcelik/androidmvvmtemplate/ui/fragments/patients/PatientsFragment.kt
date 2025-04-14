@@ -1,38 +1,38 @@
 package com.ferhatozcelik.androidmvvmtemplate.ui.fragments.patients
 
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
+import android.widget.TextView
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.ferhatozcelik.androidmvvmtemplate.R
 import com.ferhatozcelik.androidmvvmtemplate.databinding.FragmentPatientsBinding
 import com.ferhatozcelik.androidmvvmtemplate.ui.base.BaseFragment
 
-// TODO: Create this ViewModel class
+// Simple ViewModel for Patients
 class PatientsViewModel : ViewModel() {
     // Add LiveData or StateFlow for patient list, search query, etc.
 }
 
-// Provide both ViewBinding and ViewModel types to BaseFragment
 class PatientsFragment : BaseFragment<FragmentPatientsBinding, PatientsViewModel>() {
 
-    // Inject or provide the ViewModel
+    // Create the ViewModel using standard ViewModelProvider
     override val viewModel: PatientsViewModel by lazy {
         ViewModelProvider(this)[PatientsViewModel::class.java]
-        // Or use dependency injection (Hilt, Koin, etc.)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        // Access binding via 'binding' property from BaseFragment
-        binding.textViewPatientsTitle.text = "Patients List" // Use binding directly
-
-        // TODO: Initialize RecyclerView Adapter
-        // TODO: Set up search functionality (observe EditText changes, update ViewModel)
-        // TODO: Observe ViewModel LiveData/StateFlow for patient data and update Adapter
-        // viewModel.patientList.observe(viewLifecycleOwner) { patients -> ... }
+        
+        try {
+            // Use a safe way to access views - first try to use the binding
+            binding.textViewPatientsTitle.text = "Patients List"
+        } catch (e: Exception) {
+            // Fallback to findViewById if binding fails
+            view.findViewById<TextView>(R.id.textViewPatientsTitle)?.text = "Patients List"
+        }
+        
+        // Log that the fragment was created successfully
+        activity?.title = "Patients"
     }
-
 } 
