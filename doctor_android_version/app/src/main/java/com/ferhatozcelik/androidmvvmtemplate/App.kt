@@ -2,8 +2,6 @@ package com.ferhatozcelik.androidmvvmtemplate
 
 import android.app.Application
 import android.util.Log
-import android.widget.Toast
-import com.ferhatozcelik.androidmvvmtemplate.BuildConfig
 import com.ferhatozcelik.androidmvvmtemplate.data.supabase.SessionManager
 import com.ferhatozcelik.androidmvvmtemplate.data.supabase.SupabaseManager
 import com.ferhatozcelik.androidmvvmtemplate.di.apiModule
@@ -21,23 +19,23 @@ import org.koin.core.logger.Level
 class App : Application() {
     
     companion object {
-        private const val TAG = "DoctorApp"
+        private const val TAG = "App"
     }
     
     override fun onCreate() {
         super.onCreate()
         
-        // Initialize SessionManager first (doesn't depend on Supabase)
         try {
+            Log.d(TAG, "Initializing app and dependencies")
+            
+            // Initialize SessionManager first
             SessionManager.init(this)
-            Log.d(TAG, "SessionManager initialized successfully")
-        } catch (e: Exception) {
-            Log.e(TAG, "Error initializing SessionManager: ${e.message}", e)
-            // Allow app to continue even if SessionManager init fails
-        }
-        
-        // Initialize Koin for dependency injection
-        try {
+            Log.d(TAG, "SessionManager initialized")
+            
+            // No need to initialize SupabaseManager explicitly as it uses BuildConfig directly
+            // But we'll log its state
+            Log.d(TAG, "Supabase URL: ${SupabaseManager.supabaseUrl}")
+            
             startKoin {
                 androidLogger(Level.ERROR)
                 androidContext(this@App)
@@ -53,44 +51,9 @@ class App : Application() {
                     )
                 )
             }
-            Log.d(TAG, "Koin initialized successfully")
+            Log.d(TAG, "App initialization complete")
         } catch (e: Exception) {
-            Log.e(TAG, "Error initializing Koin: ${e.message}", e)
-        }
-        
-        // Initialize Supabase last (most likely to fail)
-        initializeSupabase()
-    }
-    
-    private fun initializeSupabase() {
-        try {
-            Log.d(TAG, "Initializing Supabase")
-            
-            val supabaseUrl = BuildConfig.SUPABASE_URL
-            val supabaseKey = BuildConfig.SUPABASE_ANON_KEY
-            
-            if (supabaseUrl.isBlank() || supabaseKey.isBlank()) {
-                Log.e(TAG, "Invalid Supabase credentials: URL or key is empty")
-                return
-            }
-            
-            SupabaseManager.initialize(
-                url = supabaseUrl,
-                anonKey = supabaseKey
-            )
-            Log.d(TAG, "Supabase initialized successfully")
-        } catch (e: Throwable) {
-            // Catch Throwable instead of Exception to also catch NoClassDefFoundError
-            Log.e(TAG, "Error initializing Supabase: ${e::class.java.simpleName} - ${e.message}", e)
-            
-            // Show a toast for debugging in dev builds
-            if (BuildConfig.DEBUG) {
-                Toast.makeText(
-                    this,
-                    "Error initializing Supabase: ${e.message}",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
+            Log.e(TAG, "Error initializing app: ${e.message}", e)
         }
     }
 }

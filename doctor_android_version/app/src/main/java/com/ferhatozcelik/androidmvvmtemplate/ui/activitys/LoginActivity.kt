@@ -24,7 +24,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>(ActivityLoginBinding::i
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d(TAG, "onCreate")
+        Log.d(TAG, "onCreate() - Starting LoginActivity")
 
         // Check if already logged in
         if (SessionManager.isLoggedIn()) {
@@ -39,6 +39,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>(ActivityLoginBinding::i
 
         // Set up the login button click listener
         binding.loginButton.setOnClickListener {
+            Log.d(TAG, "Login button clicked")
             performLogin()
         }
     }
@@ -52,65 +53,69 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>(ActivityLoginBinding::i
             return
         }
 
-        Log.d(TAG, "Attempting login for: $email")
-        
         // Show loading indicator
         binding.loginProgressBar.visibility = View.VISIBLE
         binding.loginButton.isEnabled = false
+        
+        Log.d(TAG, "Attempting login with email: $email")
 
         // Attempt to log in
         lifecycleScope.launch {
             try {
-                // For this demo, since we're having issues with Supabase,
-                // let's directly sign in the demo doctor if the credentials match
-                if (email == DOCTOR_EMAIL && password == DOCTOR_PASSWORD) {
-                    Log.d(TAG, "Using demo login flow for doctor")
-                    handleSuccessfulLogin(email)
-                    return@launch
-                }
-                
-                // Otherwise, attempt actual Supabase login
-                Log.d(TAG, "Attempting Supabase login")
+                Log.d(TAG, "Calling SupabaseManager.login()")
                 val result = SupabaseManager.login(email, password)
                 
                 result.fold(
-                    onSuccess = {
-                        handleSuccessfulLogin(email)
+                    onSuccess = { success ->
+                        if (success) {
+                            Log.d(TAG, "Login successful")
+                            // Login successful, update SessionManager
+                            SessionManager.setLoggedIn(email)
+                            
+                            // Navigate to MainActivity
+                            navigateToMainActivity()
+                        } else {
+                            Log.d(TAG, "Login returned success=false")
+                            // Login failed but no exception - invalid credentials
+                            Toast.makeText(
+                                this@LoginActivity,
+                                "Invalid email or password",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            
+                            // Hide loading indicator and re-enable login button
+                            binding.loginProgressBar.visibility = View.GONE
+                            binding.loginButton.isEnabled = true
+                        }
                     },
                     onFailure = { error ->
-                        handleLoginError(error)
+                        Log.e(TAG, "Login error: ${error.message}", error)
+                        // Login failed, show error message
+                        Toast.makeText(
+                            this@LoginActivity,
+                            "Login failed: ${error.localizedMessage}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        
+                        // Hide loading indicator and re-enable login button
+                        binding.loginProgressBar.visibility = View.GONE
+                        binding.loginButton.isEnabled = true
                     }
                 )
             } catch (e: Exception) {
+                Log.e(TAG, "Unexpected error during login: ${e.message}", e)
                 // Handle any unexpected exceptions
-                Log.e(TAG, "Login error: ${e.message}", e)
-                handleLoginError(e)
+                Toast.makeText(
+                    this@LoginActivity,
+                    "Login failed: ${e.localizedMessage}",
+                    Toast.LENGTH_SHORT
+                ).show()
+                
+                // Hide loading indicator and re-enable login button
+                binding.loginProgressBar.visibility = View.GONE
+                binding.loginButton.isEnabled = true
             }
         }
-    }
-    
-    private fun handleSuccessfulLogin(email: String) {
-        Log.d(TAG, "Login successful")
-        // Login successful, update SessionManager
-        SessionManager.setLoggedIn(email)
-        
-        // Navigate to MainActivity
-        navigateToMainActivity()
-    }
-    
-    private fun handleLoginError(error: Throwable) {
-        Log.e(TAG, "Login failed: ${error.message}", error)
-        
-        // Login failed, show error message
-        Toast.makeText(
-            this@LoginActivity,
-            "Login failed: ${error.localizedMessage ?: "Unknown error"}",
-            Toast.LENGTH_SHORT
-        ).show()
-        
-        // Hide loading indicator and re-enable login button
-        binding.loginProgressBar.visibility = View.GONE
-        binding.loginButton.isEnabled = true
     }
 
     private fun navigateToMainActivity() {
