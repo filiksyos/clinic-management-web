@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { FaCalendarCheck, FaUserInjured, FaStethoscope } from "react-icons/fa";
+import { FaCalendarCheck, FaUserInjured } from "react-icons/fa";
 import { getPatients, getAppointments, getTodaysAppointments } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
@@ -117,12 +117,12 @@ export default function DoctorDashboard() {
             Email: {user?.email || 'doctornew@clinic.com'}
           </p>
           <p className="text-gray-600">
-            You have access to patient records, appointments, and medical consultations.
+            You have access to patient records and appointments.
           </p>
         </div>
 
         <h2 className="text-lg font-medium mb-4 text-gray-800">Overview</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           <DashboardCard
             title="Total Patients"
             value={patientsCount}
@@ -133,12 +133,6 @@ export default function DoctorDashboard() {
             title="Today's Appointments"
             value={todayAppointments.length}
             icon={<FaCalendarCheck className="text-green-500 text-xl" />}
-            isLoading={isLoading}
-          />
-          <DashboardCard
-            title="Consultations"
-            value={appointmentsCount}
-            icon={<FaStethoscope className="text-purple-500 text-xl" />}
             isLoading={isLoading}
           />
         </div>
@@ -185,15 +179,6 @@ export default function DoctorDashboard() {
                   <div className="flex items-center">
                     <FaUserInjured className="mr-3" />
                     <span>View Patient Records</span>
-                  </div>
-                </Link>
-                <Link 
-                  href="/doctor/consultations"
-                  className="block p-3 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors"
-                >
-                  <div className="flex items-center">
-                    <FaStethoscope className="mr-3" />
-                    <span>Manage Consultations</span>
                   </div>
                 </Link>
               </div>

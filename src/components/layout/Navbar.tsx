@@ -1,7 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import React, { Dispatch, SetStateAction, useState } from "react";
+import React, { Dispatch, SetStateAction, useState, useEffect } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { UserRole } from "@/lib/supabase";
 
 const Navbar = ({
   setOpen,
@@ -12,6 +14,16 @@ const Navbar = ({
 }) => {
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const router = useRouter();
+  const { user } = useAuth();
+  const [userRole, setUserRole] = useState<UserRole>('receptionist');
+
+  useEffect(() => {
+    if (user) {
+      // Get the role from user metadata
+      const role = user.app_metadata?.role as UserRole;
+      setUserRole(role || 'receptionist');
+    }
+  }, [user]);
 
   const handleNavigate = () => {
     router.push(`/dashboard/profile`);
@@ -62,13 +74,13 @@ const Navbar = ({
         >
           <div className="relative">
             <div className="size-8 lg:size-12 rounded-full bg-gray-300 flex items-center justify-center text-gray-700 font-bold">
-              R
+              {userRole === 'doctor' ? 'D' : 'R'}
             </div>
             <div className="w-[10px] h-[10px] rounded-full bg-green-500 absolute bottom-[0px] right-0 border-2 border-white"></div>
           </div>
 
           <h1 className="text-[1rem] font-[400] text-gray-600 sm:block hidden">
-            Receptionist
+            {userRole === 'doctor' ? 'Doctor' : 'Receptionist'}
           </h1>
 
           <svg

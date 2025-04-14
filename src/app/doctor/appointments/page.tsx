@@ -132,12 +132,6 @@ export default function DoctorAppointments() {
                           >
                             View
                           </Link>
-                          <Link 
-                            href={`/doctor/consultations/new?appointment=${appointment.id}`}
-                            className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200"
-                          >
-                            Consult
-                          </Link>
                         </div>
                       </td>
                     </tr>

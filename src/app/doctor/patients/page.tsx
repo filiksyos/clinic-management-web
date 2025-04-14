@@ -84,14 +84,6 @@ export default function DoctorPatients() {
                       <p className="text-sm text-gray-600 mt-1">
                         {patient.gender}, {patient.age} years
                       </p>
-                      <div className="mt-4">
-                        <Link 
-                          href={`/doctor/records?patient=${patient.id}`}
-                          className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
-                        >
-                          View Records
-                        </Link>
-                      </div>
                     </div>
                   </div>
                 </div>

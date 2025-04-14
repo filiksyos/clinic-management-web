@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useState, useEffect } from "react";
 import Navbar from "./Navbar";
-import { FaCalendarCheck, FaUserInjured, FaNotesMedical, FaStethoscope } from "react-icons/fa";
+import { FaCalendarCheck, FaUserInjured } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md";
 import { useAuth } from "@/context/AuthContext";
 import { UserRole } from "@/lib/supabase";
@@ -162,17 +162,6 @@ export default function SideBar() {
                     Upcoming Appointments
                   </NavLink>
                 </CollapsibleMenu>
-
-                <CollapsibleMenu title="Medical Records" icon={<FaNotesMedical />}>
-                  <NavLink href="/doctor/records">
-                    Patient Records
-                  </NavLink>
-                </CollapsibleMenu>
-
-                <NavLink href="/doctor/consultations">
-                  <FaStethoscope className="text-xl" />
-                  <div className="flex w-full truncate text-sm">Consultations</div>
-                </NavLink>
               </>
             )}
           </ul>
