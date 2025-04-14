@@ -1,6 +1,0 @@
-export enum ENUM_USER_ROLE {
-    ADMIN = 'ADMIN',
-    RECEPTIONIST = 'RECEPTIONIST',
-    DOCTOR = 'DOCTOR',
-    PATIENT = 'PATIENT'
-}

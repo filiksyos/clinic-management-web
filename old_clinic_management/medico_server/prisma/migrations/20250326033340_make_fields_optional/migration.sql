@@ -1,2 +1,0 @@
--- Empty migration file
--- This is needed because Prisma was trying to find this file but it was missing 

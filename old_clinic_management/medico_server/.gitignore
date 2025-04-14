@@ -1,6 +1,0 @@
-dist
-node_modules
-.env
-.vercel
-.env.local
-.supabase/
