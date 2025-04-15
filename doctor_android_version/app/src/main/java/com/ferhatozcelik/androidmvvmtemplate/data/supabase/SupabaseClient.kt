@@ -46,6 +46,50 @@ interface SupabaseAuthAPI {
     )
 }
 
+// Retrofit interface for Patients API
+interface PatientsAPI {
+    @GET("rest/v1/patients")
+    suspend fun getAllPatients(
+        @Header("apikey") apiKey: String = BuildConfig.SUPABASE_ANON_KEY,
+        @Header("Authorization") authToken: String
+    ): List<Patient>
+    
+    @GET("rest/v1/patients")
+    suspend fun getPatient(
+        @Query("id") id: String,
+        @Query("select") select: String = "*",
+        @Header("apikey") apiKey: String = BuildConfig.SUPABASE_ANON_KEY,
+        @Header("Authorization") authToken: String
+    ): List<Patient>
+}
+
+// Retrofit interface for Appointments API
+interface AppointmentsAPI {
+    @GET("rest/v1/appointments")
+    suspend fun getAllAppointments(
+        @Query("select") select: String = "*, patients(*)",
+        @Header("apikey") apiKey: String = BuildConfig.SUPABASE_ANON_KEY,
+        @Header("Authorization") authToken: String
+    ): List<Appointment>
+    
+    @GET("rest/v1/appointments")
+    suspend fun getScheduledAppointments(
+        @Query("status") status: String = "scheduled",
+        @Query("select") select: String = "*, patients(*)",
+        @Query("order") order: String = "appointment_date.asc",
+        @Header("apikey") apiKey: String = BuildConfig.SUPABASE_ANON_KEY,
+        @Header("Authorization") authToken: String
+    ): List<Appointment>
+
+    @GET("rest/v1/appointments")
+    suspend fun getAppointment(
+        @Query("id") id: String,
+        @Query("select") select: String = "*, patients(*)",
+        @Header("apikey") apiKey: String = BuildConfig.SUPABASE_ANON_KEY,
+        @Header("Authorization") authToken: String
+    ): List<Appointment>
+}
+
 /**
  * Manages Supabase authentication using direct REST API calls
  */
@@ -71,12 +115,16 @@ object SupabaseManager {
         .build()
 
     // Create Retrofit instance
-    private val authApi = Retrofit.Builder()
+    private val retrofit = Retrofit.Builder()
         .baseUrl(supabaseUrl)
         .client(httpClient)
         .addConverterFactory(GsonConverterFactory.create())
         .build()
-        .create(SupabaseAuthAPI::class.java)
+        
+    // Create API services
+    private val authApi = retrofit.create(SupabaseAuthAPI::class.java)
+    private val patientsApi = retrofit.create(PatientsAPI::class.java)
+    private val appointmentsApi = retrofit.create(AppointmentsAPI::class.java)
     
     /**
      * Initialize with credentials from BuildConfig
@@ -174,6 +222,67 @@ object SupabaseManager {
             
             // We still return success as the user is effectively logged out locally
             Result.success(true)
+        }
+    }
+    
+    /**
+     * Get authentication token for API requests
+     */
+    private fun getAuthHeader(): String {
+        return "Bearer $currentAccessToken"
+    }
+    
+    /**
+     * Get all patients
+     */
+    suspend fun getPatients(): Result<List<Patient>> = withContext(Dispatchers.IO) {
+        try {
+            if (currentAccessToken == null) {
+                return@withContext Result.failure(Exception("Not authenticated"))
+            }
+            
+            val patients = patientsApi.getAllPatients(authToken = getAuthHeader())
+            Log.d(TAG, "Retrieved ${patients.size} patients")
+            Result.success(patients)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error fetching patients: ${e.message}", e)
+            Result.failure(e)
+        }
+    }
+    
+    /**
+     * Get all appointments
+     */
+    suspend fun getAppointments(): Result<List<Appointment>> = withContext(Dispatchers.IO) {
+        try {
+            if (currentAccessToken == null) {
+                return@withContext Result.failure(Exception("Not authenticated"))
+            }
+            
+            val appointments = appointmentsApi.getAllAppointments(authToken = getAuthHeader())
+            Log.d(TAG, "Retrieved ${appointments.size} appointments")
+            Result.success(appointments)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error fetching appointments: ${e.message}", e)
+            Result.failure(e)
+        }
+    }
+    
+    /**
+     * Get scheduled appointments
+     */
+    suspend fun getScheduledAppointments(): Result<List<Appointment>> = withContext(Dispatchers.IO) {
+        try {
+            if (currentAccessToken == null) {
+                return@withContext Result.failure(Exception("Not authenticated"))
+            }
+            
+            val appointments = appointmentsApi.getScheduledAppointments(authToken = getAuthHeader())
+            Log.d(TAG, "Retrieved ${appointments.size} scheduled appointments")
+            Result.success(appointments)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error fetching scheduled appointments: ${e.message}", e)
+            Result.failure(e)
         }
     }
     

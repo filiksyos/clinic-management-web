@@ -1,5 +1,5 @@
 [versions]
-agp = "7.4.2"
+agp = "8.9.0"
 androidx-multidex = "2.0.1"
 annotation = "1.7.0"
 desugar_jdk_libs = "2.0.3"
@@ -32,10 +32,12 @@ squareup-logging-interceptor = "4.7.2"
 viewpager2 = "1.0.0"
 koin = "3.5.0"
 supabase = "2.0.4"
+recyclerview = "1.3.2"
 
 [libraries]
 
 androidx-viewpager2 = { module = "androidx.viewpager2:viewpager2", version.ref = "viewpager2" }
+androidx-recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerview" }
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin-stdlib" }
 androidx-legacy-support-v4 = { module = "androidx.legacy:legacy-support-v4", version.ref = "legacy-support-v4" }
 androidx-multidex = { module = "androidx.multidex:multidex", version.ref = "androidx-multidex" }

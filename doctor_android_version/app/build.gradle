@@ -54,6 +54,9 @@ dependencies {
     // Material Design
     implementation(libs.material)
     implementation libs.androidx.viewpager2
+    
+    // RecyclerView
+    implementation(libs.androidx.recyclerview)
 
     // ConstraintLayout
     implementation(libs.constraintlayout)
