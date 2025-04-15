@@ -27,10 +27,12 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>(ActivityLoginBinding::i
         Log.d(TAG, "onCreate() - Starting LoginActivity")
 
         // Check if already logged in
-        if (SessionManager.isLoggedIn()) {
-            Log.d(TAG, "User already logged in, navigating to MainActivity")
+        if (SessionManager.validateSession()) {
+            Log.d(TAG, "Valid session found, navigating to MainActivity")
             navigateToMainActivity()
             return
+        } else {
+            Log.d(TAG, "No valid session found, showing login screen")
         }
 
         // Auto-fill the email and password fields
@@ -69,11 +71,26 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>(ActivityLoginBinding::i
                     onSuccess = { success ->
                         if (success) {
                             Log.d(TAG, "Login successful")
-                            // Login successful, update SessionManager
+                            // Login successful, update SessionManager and session state
                             SessionManager.setLoggedIn(email)
                             
-                            // Navigate to MainActivity
-                            navigateToMainActivity()
+                            // Double check session validity
+                            if (SessionManager.validateSession()) {
+                                // Navigate to MainActivity
+                                navigateToMainActivity()
+                            } else {
+                                // Session validation failed, show error
+                                Log.e(TAG, "Session validation failed after successful login")
+                                Toast.makeText(
+                                    this@LoginActivity,
+                                    "Session error, please try again",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                
+                                // Hide loading indicator and re-enable login button
+                                binding.loginProgressBar.visibility = View.GONE
+                                binding.loginButton.isEnabled = true
+                            }
                         } else {
                             Log.d(TAG, "Login returned success=false")
                             // Login failed but no exception - invalid credentials

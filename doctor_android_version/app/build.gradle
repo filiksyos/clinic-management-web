@@ -4,8 +4,8 @@ plugins {
     alias(libs.plugins.androidx.navigation.safeargs)
     alias(libs.plugins.com.google.devtools.ksp)
     id('kotlin-parcelize')
-    // id("com.google.gms.google-services") // Google Play Services
-    // id("com.google.firebase.crashlytics") // Google Play Services
+    id("com.google.gms.google-services") // Google Play Services
+    id("com.google.firebase.crashlytics") // Google Play Services
 }
 android {
     buildFeatures {
@@ -102,9 +102,10 @@ dependencies {
     ksp(libs.ksp)
 
     // Firebase
-    // implementation(libs.firebase)
-    // implementation(libs.analytics)
-    // implementation(libs.crashlytics)
+    implementation platform(libs.firebase)
+    implementation(libs.analytics)
+    implementation(libs.crashlytics)
+    implementation("com.google.firebase:firebase-messaging-ktx")
     
     // Supabase - Using direct Retrofit approach instead
     // implementation platform(libs.supabase.bom)

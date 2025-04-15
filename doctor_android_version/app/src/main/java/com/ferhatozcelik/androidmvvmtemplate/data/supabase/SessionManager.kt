@@ -180,4 +180,33 @@ object SessionManager {
             }
         }
     }
+    
+    /**
+     * Check if we have a valid access token
+     */
+    fun hasValidAccessToken(): Boolean {
+        val token = getAccessToken()
+        Log.d(TAG, "Checking for valid access token: ${!token.isNullOrEmpty()}")
+        return !token.isNullOrEmpty()
+    }
+    
+    /**
+     * Validate session state and token
+     * Returns true if valid session found, false otherwise
+     */
+    fun validateSession(): Boolean {
+        val isLoggedInValue = isLoggedIn()
+        val hasToken = hasValidAccessToken()
+        
+        Log.d(TAG, "Validating session - logged in: $isLoggedInValue, has token: $hasToken")
+        
+        // If logged in state doesn't match token existence, fix it
+        if (isLoggedInValue && !hasToken) {
+            Log.w(TAG, "Session inconsistency: Marked as logged in but no token found. Clearing session.")
+            setLoggedOut()
+            return false
+        }
+        
+        return isLoggedInValue && hasToken
+    }
 } 

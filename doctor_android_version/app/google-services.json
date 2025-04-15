@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "928850648756",
+    "project_id": "clinic-management-90817",
+    "storage_bucket": "clinic-management-90817.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:928850648756:android:e229146c3b46ff86ce01e1",
+        "android_client_info": {
+          "package_name": "com.ferhatozcelik.androidmvvmtemplate"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDkWzb5LQiLcUXKWFi0jJhMygJwv15go98"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

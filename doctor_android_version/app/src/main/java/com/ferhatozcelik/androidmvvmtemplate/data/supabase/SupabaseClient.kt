@@ -272,16 +272,47 @@ object SupabaseManager {
      */
     suspend fun getPatients(): Result<List<Patient>> = withContext(Dispatchers.IO) {
         try {
+            // Try to restore session if not authenticated
             if (currentAccessToken == null) {
-                return@withContext Result.failure(Exception("Not authenticated"))
+                restoreSession()
+                
+                // If still not authenticated after restore attempt, return error
+                if (currentAccessToken == null) {
+                    Log.e(TAG, "Not authenticated. Login required.")
+                    return@withContext Result.failure(Exception("Authentication required. Please log in."))
+                }
             }
             
-            val patients = patientsApi.getAllPatients(authToken = getAuthHeader())
-            Log.d(TAG, "Retrieved ${patients.size} patients")
-            Result.success(patients)
+            try {
+                val patients = patientsApi.getAllPatients(authToken = getAuthHeader())
+                Log.d(TAG, "Retrieved ${patients.size} patients")
+                return@withContext Result.success(patients)
+            } catch (e: Exception) {
+                // If we get a 401, try logging in again with stored credentials
+                if (e.message?.contains("401") == true) {
+                    Log.w(TAG, "Authentication token expired. Attempting to refresh session.")
+                    
+                    // Clear current token as it's invalid
+                    currentAccessToken = null
+                    
+                    // Try to get an email from session manager
+                    val email = SessionManager.userEmail.value
+                    
+                    if (!email.isNullOrEmpty()) {
+                        // We need to redirect user to login screen
+                        return@withContext Result.failure(Exception("Session expired. Please log in again."))
+                    } else {
+                        return@withContext Result.failure(Exception("Authentication required. Please log in."))
+                    }
+                }
+                
+                // For other errors, just return the failure
+                Log.e(TAG, "Error fetching patients: ${e.message}", e)
+                return@withContext Result.failure(e)
+            }
         } catch (e: Exception) {
-            Log.e(TAG, "Error fetching patients: ${e.message}", e)
-            Result.failure(e)
+            Log.e(TAG, "Error in getPatients: ${e.message}", e)
+            return@withContext Result.failure(e)
         }
     }
     
@@ -308,16 +339,47 @@ object SupabaseManager {
      */
     suspend fun getAppointments(): Result<List<Appointment>> = withContext(Dispatchers.IO) {
         try {
+            // Try to restore session if not authenticated
             if (currentAccessToken == null) {
-                return@withContext Result.failure(Exception("Not authenticated"))
+                restoreSession()
+                
+                // If still not authenticated after restore attempt, return error
+                if (currentAccessToken == null) {
+                    Log.e(TAG, "Not authenticated. Login required.")
+                    return@withContext Result.failure(Exception("Authentication required. Please log in."))
+                }
             }
             
-            val appointments = appointmentsApi.getAllAppointments(authToken = getAuthHeader())
-            Log.d(TAG, "Retrieved ${appointments.size} appointments")
-            Result.success(appointments)
+            try {
+                val appointments = appointmentsApi.getAllAppointments(authToken = getAuthHeader())
+                Log.d(TAG, "Retrieved ${appointments.size} appointments")
+                return@withContext Result.success(appointments)
+            } catch (e: Exception) {
+                // If we get a 401, try logging in again with stored credentials
+                if (e.message?.contains("401") == true) {
+                    Log.w(TAG, "Authentication token expired. Attempting to refresh session.")
+                    
+                    // Clear current token as it's invalid
+                    currentAccessToken = null
+                    
+                    // Try to get an email from session manager
+                    val email = SessionManager.userEmail.value
+                    
+                    if (!email.isNullOrEmpty()) {
+                        // We need to redirect user to login screen
+                        return@withContext Result.failure(Exception("Session expired. Please log in again."))
+                    } else {
+                        return@withContext Result.failure(Exception("Authentication required. Please log in."))
+                    }
+                }
+                
+                // For other errors, just return the failure
+                Log.e(TAG, "Error fetching appointments: ${e.message}", e)
+                return@withContext Result.failure(e)
+            }
         } catch (e: Exception) {
-            Log.e(TAG, "Error fetching appointments: ${e.message}", e)
-            Result.failure(e)
+            Log.e(TAG, "Error in getAppointments: ${e.message}", e)
+            return@withContext Result.failure(e)
         }
     }
     
