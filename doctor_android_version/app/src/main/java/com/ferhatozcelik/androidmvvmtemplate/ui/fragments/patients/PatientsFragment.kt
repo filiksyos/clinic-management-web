@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
-import androidx.appcompat.widget.SearchView
 import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -39,12 +38,14 @@ class PatientsFragment : BaseFragment<FragmentPatientsBinding, PatientsViewModel
         super.onViewCreated(view, savedInstanceState)
         
         setupRecyclerView()
-        setupSearchView()
         setupSwipeRefresh()
         setupObservers()
         
         // Set activity title
         activity?.title = getString(R.string.patients)
+        
+        // Load patients initially
+        viewModel.loadPatients()
     }
     
     private fun setupRecyclerView() {
@@ -52,24 +53,6 @@ class PatientsFragment : BaseFragment<FragmentPatientsBinding, PatientsViewModel
             layoutManager = LinearLayoutManager(requireContext())
             adapter = patientsAdapter
         }
-    }
-    
-    private fun setupSearchView() {
-        binding.searchViewPatients.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                if (!query.isNullOrBlank()) {
-                    viewModel.searchPatients(query)
-                }
-                return true
-            }
-
-            override fun onQueryTextChange(newText: String?): Boolean {
-                if (newText.isNullOrBlank()) {
-                    viewModel.loadPatients()
-                }
-                return true
-            }
-        })
     }
     
     private fun setupSwipeRefresh() {

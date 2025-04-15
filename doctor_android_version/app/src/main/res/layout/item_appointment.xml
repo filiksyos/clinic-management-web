@@ -16,33 +16,45 @@
         android:layout_height="wrap_content"
         android:padding="16dp">
 
-        <TextView
-            android:id="@+id/textViewAppointmentTime"
+        <LinearLayout
+            android:id="@+id/dateTimeContainer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:orientation="horizontal"
             android:background="@drawable/time_background"
             android:paddingStart="12dp"
             android:paddingEnd="12dp"
             android:paddingTop="4dp"
             android:paddingBottom="4dp"
-            android:textColor="@color/colorPrimary"
-            android:textSize="14sp"
-            android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="10:30 AM" />
+            app:layout_constraintTop_toTopOf="parent">
 
-        <TextView
-            android:id="@+id/textViewAppointmentDate"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:textColor="@color/textColorSecondary"
-            android:textSize="14sp"
-            app:layout_constraintBottom_toBottomOf="@+id/textViewAppointmentTime"
-            app:layout_constraintStart_toEndOf="@+id/textViewAppointmentTime"
-            app:layout_constraintTop_toTopOf="@+id/textViewAppointmentTime"
-            tools:text="May 15, 2023" />
+            <TextView
+                android:id="@+id/textViewAppointmentDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/colorPrimary"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                tools:text="Feb 5" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/colorPrimary"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:text=" · " />
+
+            <TextView
+                android:id="@+id/textViewAppointmentTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/colorPrimary"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                tools:text="12:00 PM" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/textViewAppointmentStatus"
@@ -68,7 +80,7 @@
             android:background="@color/dividerColor"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textViewAppointmentTime" />
+            app:layout_constraintTop_toBottomOf="@+id/dateTimeContainer" />
 
         <ImageView
             android:id="@+id/imageViewPatient"
@@ -124,34 +136,6 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@+id/imageViewPatient"
             app:tint="@color/textColorSecondary" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/buttonReschedule"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="Reschedule"
-            android:textAllCaps="false"
-            android:textSize="12sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/imageViewPatient" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/buttonStartCall"
-            style="@style/Widget.MaterialComponents.Button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:text="Start Call"
-            android:textAllCaps="false"
-            android:textSize="12sp"
-            app:icon="@drawable/ic_video_call"
-            app:iconGravity="textStart"
-            app:iconSize="16dp"
-            app:layout_constraintBottom_toBottomOf="@+id/buttonReschedule"
-            app:layout_constraintStart_toEndOf="@+id/buttonReschedule"
-            app:layout_constraintTop_toTopOf="@+id/buttonReschedule" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView> 

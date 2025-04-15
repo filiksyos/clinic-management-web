@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
-import androidx.appcompat.widget.SearchView
 import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -32,7 +31,6 @@ class AppointmentsFragment : BaseFragment<FragmentAppointmentsBinding, Appointme
         super.onViewCreated(view, savedInstanceState)
         
         setupRecyclerView()
-        setupSearchView()
         setupSwipeRefresh()
         setupTabLayout()
         setupObservers()
@@ -46,29 +44,6 @@ class AppointmentsFragment : BaseFragment<FragmentAppointmentsBinding, Appointme
             layoutManager = LinearLayoutManager(requireContext())
             adapter = appointmentsAdapter
         }
-    }
-    
-    private fun setupSearchView() {
-        binding.searchViewAppointments.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                if (!query.isNullOrBlank()) {
-                    viewModel.filterAppointmentsByPatientName(query)
-                }
-                return true
-            }
-
-            override fun onQueryTextChange(newText: String?): Boolean {
-                if (newText.isNullOrBlank()) {
-                    // Selected tab determines what to load
-                    if (binding.tabLayoutAppointments.selectedTabPosition == 0) {
-                        viewModel.loadScheduledAppointments()
-                    } else {
-                        viewModel.loadAllAppointments()
-                    }
-                }
-                return true
-            }
-        })
     }
     
     private fun setupSwipeRefresh() {

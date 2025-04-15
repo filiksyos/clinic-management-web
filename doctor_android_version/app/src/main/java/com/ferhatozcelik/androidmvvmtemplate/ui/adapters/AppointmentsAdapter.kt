@@ -57,8 +57,8 @@ class AppointmentsAdapter(
             binding.textViewPatientName.text = patientNames[appointment.patient_id] ?: "Patient ${appointment.patient_id.take(8)}"
             
             // Set appointment date and time
-            binding.textViewAppointmentTime.text = appointment.getFormattedTime()
             binding.textViewAppointmentDate.text = appointment.getFormattedDate()
+            binding.textViewAppointmentTime.text = appointment.getFormattedTime()
             
             // Set appointment status with appropriate color
             binding.textViewAppointmentStatus.text = appointment.status.capitalize()

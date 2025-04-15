@@ -141,26 +141,6 @@ class AppointmentsViewModel(application: Application) : AndroidViewModel(applica
         return patientMap[patientId]
     }
 
-    // Local filtering implementation
-    fun filterAppointmentsByPatientName(query: String) {
-        val listToFilter = if (currentListMode == 0) {
-            scheduledAppointmentsList // Filter scheduled if that tab is active
-        } else {
-            allAppointmentsList // Filter all if that tab is active
-        }
-
-        if (query.isBlank()) {
-            _appointments.postValue(listToFilter) // Show the full list for the current tab
-            return
-        }
-
-        val filtered = listToFilter.filter { appointment ->
-            val patient = patientMap[appointment.patient_id]
-            patient?.getFullName()?.contains(query, ignoreCase = true) == true
-        }
-        _appointments.postValue(filtered)
-    }
-
     fun getAppointmentById(appointmentId: String): Appointment? {
         // Search in the currently relevant list primarily
         return if (currentListMode == 0) {

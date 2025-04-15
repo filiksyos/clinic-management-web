@@ -25,7 +25,7 @@ class PatientsViewModel(application: Application) : AndroidViewModel(application
     private val _error = MutableLiveData<String?>()
     val error: LiveData<String?> = _error
     
-    // Keep track of the original list for local filtering
+    // Keep track of the original list for reference
     private var allPatients: List<Patient> = emptyList()
     
     // Initialize by loading patients
@@ -60,23 +60,6 @@ class PatientsViewModel(application: Application) : AndroidViewModel(application
      */
     fun getPatientById(patientId: String): Patient? {
         return allPatients.find { it.id == patientId }
-    }
-    
-    /**
-     * Search patients by name
-     */
-    fun searchPatients(query: String) {
-        if (query.isBlank()) {
-            _patients.postValue(allPatients) // Show all if query is blank
-            return
-        }
-        
-        val filtered = allPatients.filter { patient ->
-            patient.getFullName().contains(query, ignoreCase = true) ||
-            patient.email.contains(query, ignoreCase = true)
-            // Add other fields to search if needed
-        }
-        _patients.postValue(filtered)
     }
     
     /**
