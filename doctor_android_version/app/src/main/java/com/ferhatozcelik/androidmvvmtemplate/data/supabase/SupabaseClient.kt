@@ -133,6 +133,28 @@ object SupabaseManager {
     fun initialize(url: String, anonKey: String) {
         // Already initialized in object declaration
         Log.d(TAG, "Supabase initialized with URL: $url")
+        
+        // Try to restore session from SessionManager
+        restoreSession()
+    }
+    
+    /**
+     * Restore session from SessionManager if available
+     */
+    private fun restoreSession() {
+        Log.d(TAG, "Attempting to restore session from SessionManager")
+        currentAccessToken = SessionManager.getAccessToken()
+        
+        if (!currentAccessToken.isNullOrEmpty()) {
+            // If we have a token, create a minimal user object
+            currentUser = SupabaseUser(
+                id = null, // We don't store this
+                email = SessionManager.userEmail.value
+            )
+            Log.d(TAG, "Session restored with token and email: ${currentUser?.email}")
+        } else {
+            Log.d(TAG, "No session found to restore")
+        }
     }
 
     /**
@@ -155,6 +177,14 @@ object SupabaseManager {
             
             if (success) {
                 Log.d(TAG, "Login successful for user: ${currentUser?.email}")
+                
+                // Save tokens to SessionManager for persistence
+                if (response.accessToken != null && response.refreshToken != null) {
+                    SessionManager.saveTokens(response.accessToken, response.refreshToken)
+                    Log.d(TAG, "Tokens saved to SessionManager")
+                } else {
+                    Log.e(TAG, "Missing tokens in login response")
+                }
             } else {
                 Log.d(TAG, "Login failed: No valid token or user data received")
             }
@@ -172,7 +202,12 @@ object SupabaseManager {
      */
     suspend fun isLoggedIn(): Boolean = withContext(Dispatchers.IO) {
         try {
-            // Simply check if we have a token and user
+            // If we don't have a token in memory, try to restore from SessionManager
+            if (currentAccessToken.isNullOrEmpty()) {
+                restoreSession()
+            }
+            
+            // Check if we have a token and user
             val loggedIn = !currentAccessToken.isNullOrEmpty() && currentUser != null
             Log.d(TAG, "isLoggedIn: $loggedIn")
             loggedIn
@@ -308,6 +343,7 @@ object SupabaseManager {
      * Clear local session data
      */
     private fun clearSession() {
+        Log.d(TAG, "Clearing session data")
         currentAccessToken = null
         currentUser = null
     }

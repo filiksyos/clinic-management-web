@@ -32,9 +32,9 @@ class App : Application() {
             SessionManager.init(this)
             Log.d(TAG, "SessionManager initialized")
             
-            // No need to initialize SupabaseManager explicitly as it uses BuildConfig directly
-            // But we'll log its state
-            Log.d(TAG, "Supabase URL: ${SupabaseManager.supabaseUrl}")
+            // Explicitly initialize SupabaseManager with URL and key from BuildConfig
+            SupabaseManager.initialize(SupabaseManager.supabaseUrl, SupabaseManager.supabaseAnonKey)
+            Log.d(TAG, "SupabaseManager initialized with URL: ${SupabaseManager.supabaseUrl}")
             
             startKoin {
                 androidLogger(Level.ERROR)
