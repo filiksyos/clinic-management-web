@@ -6,35 +6,59 @@ import java.util.*
 data class Appointment(
     val id: String = "",
     val patient_id: String = "",
-    val doctor_id: String = "",
-    val date: String = "",
-    val time: String = "",
+    val doctor_id: String = "", // Keep for compatibility though it's not in DB yet
+    val appointment_date: String = "",
     val status: String = STATUS_SCHEDULED,
     val notes: String? = null,
     val created_at: String? = null,
-    val reason: String? = null,
-    // Nested patient object from Supabase join
-    var patient: Patient? = null
+    val updated_at: String? = null,
+    val reason: String? = null // Not in DB yet, keeping for future compatibility
 ) {
+    // Extract date from timestamp
+    fun getDate(): String {
+        try {
+            // Parse from ISO format (assuming format like "2025-04-10 03:00:00+00")
+            val inputFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ssX", Locale.getDefault())
+            val parsedDate = inputFormat.parse(appointment_date)
+            return SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(parsedDate!!)
+        } catch (e: Exception) {
+            return appointment_date
+        }
+    }
+
+    // Extract time from timestamp
+    fun getTime(): String {
+        try {
+            // Parse from ISO format
+            val inputFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ssX", Locale.getDefault())
+            val parsedDate = inputFormat.parse(appointment_date)
+            return SimpleDateFormat("HH:mm", Locale.getDefault()).format(parsedDate!!)
+        } catch (e: Exception) {
+            return ""
+        }
+    }
+    
     fun getFormattedDate(): String {
         try {
-            val inputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            // Parse from ISO format
+            val inputFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ssX", Locale.getDefault())
             val outputFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
-            val parsedDate = inputFormat.parse(date)
-            return parsedDate?.let { outputFormat.format(it) } ?: date
+            val parsedDate = inputFormat.parse(appointment_date)
+            return parsedDate?.let { outputFormat.format(it) } ?: appointment_date
         } catch (e: Exception) {
-            return date
+            return appointment_date
         }
     }
     
     fun getFormattedTime(): String {
         try {
-            val inputFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+            // Parse from ISO format
+            val inputFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ssX", Locale.getDefault())
             val outputFormat = SimpleDateFormat("h:mm a", Locale.getDefault())
-            val parsedTime = inputFormat.parse(time)
-            return parsedTime?.let { outputFormat.format(it) } ?: time
+            val parsedDate = inputFormat.parse(appointment_date)
+            return parsedDate?.let { outputFormat.format(it) } ?: ""
         } catch (e: Exception) {
-            return time
+            return ""
         }
     }
     

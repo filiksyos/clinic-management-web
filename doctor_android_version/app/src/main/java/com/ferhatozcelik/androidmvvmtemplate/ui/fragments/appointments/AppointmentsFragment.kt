@@ -110,6 +110,14 @@ class AppointmentsFragment : BaseFragment<FragmentAppointmentsBinding, Appointme
             updateEmptyState(appointments.isEmpty())
         }
         
+        viewModel.patients.observe(viewLifecycleOwner) { patientMap ->
+            Log.d(TAG, "Observed ${patientMap.size} patients")
+            // Update the adapter with patient names for display
+            patientMap.forEach { (patientId, patient) ->
+                appointmentsAdapter.updatePatientName(patientId, patient.getFullName())
+            }
+        }
+        
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
             binding.swipeRefreshLayout.isRefreshing = isLoading
             binding.progressBar.isVisible = isLoading && appointmentsAdapter.itemCount == 0
@@ -128,11 +136,15 @@ class AppointmentsFragment : BaseFragment<FragmentAppointmentsBinding, Appointme
     }
     
     private fun onAppointmentSelected(appointment: Appointment) {
-        Log.d(TAG, "Appointment selected: ${appointment.id} for patient ${appointment.patient?.getFullName()}")
+        Log.d(TAG, "Appointment selected: ${appointment.id}")
+        // Get patient from cache
+        val patient = viewModel.getPatient(appointment.patient_id)
+        val patientName = patient?.getFullName() ?: "Unknown Patient"
+        
         // In a real app, navigate to appointment details
         Toast.makeText(
             requireContext(), 
-            "Selected appointment with ${appointment.patient?.getFullName()}", 
+            "Selected appointment with $patientName", 
             Toast.LENGTH_SHORT
         ).show()
     }

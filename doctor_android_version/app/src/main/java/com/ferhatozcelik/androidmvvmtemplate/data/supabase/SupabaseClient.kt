@@ -67,15 +67,15 @@ interface PatientsAPI {
 interface AppointmentsAPI {
     @GET("rest/v1/appointments")
     suspend fun getAllAppointments(
-        @Query("select") select: String = "*, patients(*)",
+        @Query("select") select: String = "*",
         @Header("apikey") apiKey: String = BuildConfig.SUPABASE_ANON_KEY,
         @Header("Authorization") authToken: String
     ): List<Appointment>
     
     @GET("rest/v1/appointments")
     suspend fun getScheduledAppointments(
-        @Query("status") status: String = "scheduled",
-        @Query("select") select: String = "*, patients(*)",
+        @Query("status") status: String = "eq.scheduled",
+        @Query("select") select: String = "*",
         @Query("order") order: String = "appointment_date.asc",
         @Header("apikey") apiKey: String = BuildConfig.SUPABASE_ANON_KEY,
         @Header("Authorization") authToken: String
@@ -83,8 +83,8 @@ interface AppointmentsAPI {
 
     @GET("rest/v1/appointments")
     suspend fun getAppointment(
-        @Query("id") id: String,
-        @Query("select") select: String = "*, patients(*)",
+        @Query("id") id: String = "eq.",
+        @Query("select") select: String = "*",
         @Header("apikey") apiKey: String = BuildConfig.SUPABASE_ANON_KEY,
         @Header("Authorization") authToken: String
     ): List<Appointment>
@@ -246,6 +246,24 @@ object SupabaseManager {
             Result.success(patients)
         } catch (e: Exception) {
             Log.e(TAG, "Error fetching patients: ${e.message}", e)
+            Result.failure(e)
+        }
+    }
+    
+    /**
+     * Get a single patient by ID
+     */
+    suspend fun getPatient(patientId: String): Result<List<Patient>> = withContext(Dispatchers.IO) {
+        try {
+            if (currentAccessToken == null) {
+                return@withContext Result.failure(Exception("Not authenticated"))
+            }
+            
+            val patients = patientsApi.getPatient(id = "eq.$patientId", authToken = getAuthHeader())
+            Log.d(TAG, "Retrieved patient with ID: $patientId")
+            Result.success(patients)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error fetching patient with ID $patientId: ${e.message}", e)
             Result.failure(e)
         }
     }

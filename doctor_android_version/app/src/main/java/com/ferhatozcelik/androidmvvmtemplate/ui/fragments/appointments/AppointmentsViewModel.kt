@@ -7,6 +7,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.ferhatozcelik.androidmvvmtemplate.data.supabase.Appointment
+import com.ferhatozcelik.androidmvvmtemplate.data.supabase.Patient
 import com.ferhatozcelik.androidmvvmtemplate.data.supabase.SupabaseManager
 import kotlinx.coroutines.launch
 
@@ -21,6 +22,13 @@ class AppointmentsViewModel(application: Application) : AndroidViewModel(applica
 
     private val _error = MutableLiveData<String?>()
     val error: LiveData<String?> = _error
+    
+    // Store patient data
+    private val _patients = MutableLiveData<Map<String, Patient>>()
+    val patients: LiveData<Map<String, Patient>> = _patients
+    
+    // Cache of patients by ID
+    private val patientMap = mutableMapOf<String, Patient>()
 
     // Store original lists for local filtering
     private var allAppointmentsList: List<Appointment> = emptyList()
@@ -30,7 +38,27 @@ class AppointmentsViewModel(application: Application) : AndroidViewModel(applica
     private var currentListMode = 0
 
     init {
-        loadScheduledAppointments() // Load scheduled by default
+        loadPatients() // Load patients first
+        loadScheduledAppointments() // Then load scheduled appointments
+    }
+    
+    fun loadPatients() {
+        viewModelScope.launch {
+            SupabaseManager.getPatients().fold(
+                onSuccess = { patientsList ->
+                    // Create a map of patient ID to Patient object
+                    patientsList.forEach { patient ->
+                        patientMap[patient.id] = patient
+                    }
+                    _patients.postValue(patientMap)
+                    Log.d(TAG, "Successfully loaded ${patientsList.size} patients")
+                },
+                onFailure = { exception ->
+                    Log.e(TAG, "Error loading patients", exception)
+                    _error.postValue("Failed to load patients: ${exception.localizedMessage}")
+                }
+            )
+        }
     }
 
     fun loadAllAppointments() {
@@ -43,6 +71,9 @@ class AppointmentsViewModel(application: Application) : AndroidViewModel(applica
                     _appointments.postValue(appointmentsList)
                     _isLoading.postValue(false)
                     Log.d(TAG, "Successfully loaded ${appointmentsList.size} appointments")
+                    
+                    // Fetch patient data for all appointments
+                    fetchPatientsForAppointments(appointmentsList)
                 },
                 onFailure = { exception ->
                     Log.e(TAG, "Error loading all appointments", exception)
@@ -66,6 +97,9 @@ class AppointmentsViewModel(application: Application) : AndroidViewModel(applica
                     }
                     _isLoading.postValue(false)
                     Log.d(TAG, "Successfully loaded ${appointmentsList.size} scheduled appointments")
+                    
+                    // Fetch patient data for scheduled appointments
+                    fetchPatientsForAppointments(appointmentsList)
                 },
                 onFailure = { exception ->
                     Log.e(TAG, "Error loading scheduled appointments", exception)
@@ -74,6 +108,37 @@ class AppointmentsViewModel(application: Application) : AndroidViewModel(applica
                 }
             )
         }
+    }
+    
+    // Fetch patient data for appointments
+    private fun fetchPatientsForAppointments(appointmentsList: List<Appointment>) {
+        val patientIds = appointmentsList.map { it.patient_id }.distinct()
+        
+        // Only fetch data for patients we don't already have
+        val missingPatientIds = patientIds.filter { !patientMap.containsKey(it) }
+        
+        if (missingPatientIds.isNotEmpty()) {
+            viewModelScope.launch {
+                missingPatientIds.forEach { patientId ->
+                    SupabaseManager.getPatient(patientId).fold(
+                        onSuccess = { patients -> 
+                            if (patients.isNotEmpty()) {
+                                patientMap[patientId] = patients.first()
+                                _patients.postValue(patientMap)
+                            }
+                        },
+                        onFailure = { exception ->
+                            Log.e(TAG, "Error fetching patient $patientId", exception)
+                        }
+                    )
+                }
+            }
+        }
+    }
+
+    // Get patient by ID
+    fun getPatient(patientId: String): Patient? {
+        return patientMap[patientId]
     }
 
     // Local filtering implementation
@@ -90,7 +155,8 @@ class AppointmentsViewModel(application: Application) : AndroidViewModel(applica
         }
 
         val filtered = listToFilter.filter { appointment ->
-            appointment.patient?.getFullName()?.contains(query, ignoreCase = true) == true
+            val patient = patientMap[appointment.patient_id]
+            patient?.getFullName()?.contains(query, ignoreCase = true) == true
         }
         _appointments.postValue(filtered)
     }
