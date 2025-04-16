@@ -7,6 +7,10 @@ interface AppointmentRecord {
   patient_id: string;
   appointment_date: string;
   status?: string;
+  patient_name?: string;
+  name?: string;
+  user_name?: string;
+  user_id?: string;
 }
 
 interface Patient {
@@ -200,28 +204,91 @@ serve(async (req: Request) => {
     
     // Fetch patient information
     console.log('Fetching patient data for ID:', record.patient_id);
-    const { data: patient, error: patientError } = await supabaseClient
-      .from('patients')
-      .select('first_name, last_name')
-      .eq('id', record.patient_id)
-      .single();
-    
     let patientData: Patient;
     
-    if (patientError || !patient) {
-      console.error('Error fetching patient data:', patientError);
-      console.log('Using mock patient data for testing purposes');
+    try {
+      // First attempt: Try direct query
+      const { data: patient, error: patientError } = await supabaseClient
+        .from('patients')
+        .select('first_name, last_name')
+        .eq('id', record.patient_id)
+        .single();
       
-      // Use mock patient data for testing
+      if (patientError) {
+        console.error('Error in primary patient fetch:', patientError);
+        
+        // Second attempt: Try to find by patient_id with different approach
+        console.log('Trying alternate patient lookup methods...');
+        
+        // Try to get all patients and debug
+        const { data: allPatients, error: listError } = await supabaseClient
+          .from('patients')
+          .select('id, first_name, last_name')
+          .limit(5);
+        
+        if (listError) {
+          console.error('Error listing patients:', listError);
+        } else {
+          console.log(`Found ${allPatients?.length || 0} patients in database sample.`);
+          console.log('Sample patient IDs:', allPatients?.map((p: {id: string}) => p.id).join(', '));
+        }
+        
+        // Try a different field that might be used for patient lookup
+        const { data: alternatePatient, error: altError } = await supabaseClient
+          .from('patients')
+          .select('first_name, last_name')
+          .eq('user_id', record.patient_id)
+          .limit(1)
+          .single();
+        
+        if (!altError && alternatePatient) {
+          console.log('Found patient using user_id match instead of id');
+          patientData = alternatePatient;
+        } else {
+          console.log('Could not find patient with any method, using appointment data');
+          
+          // Try to extract information from the appointment record itself
+          // Many systems store patient name directly in the appointment record as well
+          if (record.patient_name || record.name || record.user_name) {
+            const nameField = record.patient_name || record.name || record.user_name || "";
+            const nameParts = nameField.split(' ');
+            
+            patientData = {
+              first_name: nameParts[0] || "Unknown",
+              last_name: nameParts.slice(1).join(' ') || "Patient"
+            };
+            
+            console.log('Using name from appointment:', patientData);
+          } else {
+            // Last resort: Log detailed record and use placeholder
+            console.log('Complete appointment record for debugging:', JSON.stringify(record));
+            
+            patientData = {
+              first_name: "Appointment",
+              last_name: `#${record.id.substring(0, 8)}`
+            };
+          }
+        }
+      } else if (!patient) {
+        console.log('No patient record found, but no error reported');
+        patientData = {
+          first_name: "Appointment",
+          last_name: `#${record.id.substring(0, 8)}`
+        };
+      } else {
+        // Normal path - patient found
+        console.log('Patient found:', patient);
+        patientData = patient;
+      }
+    } catch (error) {
+      console.error('Unhandled error during patient lookup:', error);
       patientData = {
-        first_name: "Test",
-        last_name: "Patient"
+        first_name: "Appointment",
+        last_name: `#${record.id.substring(0, 8)}`
       };
-    } else {
-      patientData = patient;
     }
     
-    console.log('Patient data to use:', patientData);
+    console.log('Final patient data to use:', patientData);
     
     // Format appointment date
     let appointmentDate: string;
