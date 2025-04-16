@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorSecondary">#599FFE</color>
+    <color name="colorSecondaryVariant">#3A91DD</color>
+    <color name="colorPrimaryVariant">#6D83FF</color>
+    <color name="colorPrimary">#009688</color>
+    <color name="colorPrimaryDark">#00796B</color>
+    <color name="colorPrimaryLight">#FFEDE0</color>
+    <color name="colorAccent">#FF5722</color>
+    <color name="colorBackground">#FAFAFA</color>
+    <color name="colorBorder">#E0E0E0</color>
+    <color name="dividerColor">#E0E0E0</color>
+
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="textColor">#686868</color>
+    <color name="buttonColor">#0074D9</color>
+    <color name="speed_icon">#D5CB0D</color>
+    <color name="spin_icon">#FF9900</color>
+    <color name="red">#FF0000</color>
+    <color name="blue">#0339DA</color>
+    <color name="green">#00D304</color>
+
+    <color name="iconBackgroundBlue">#E3F2FD</color>
+    <color name="iconColorBlue">#2196F3</color>
+    <color name="iconBackgroundGreen">#E8F5E9</color>
+    <color name="iconColorGreen">#4CAF50</color>
+
+    <color name="textColorPrimary">#212121</color>
+    <color name="textColorSecondary">#757575</color>
+    <color name="textColorTitle">#000000</color>
+    <color name="textColorWhite">#FFFFFF</color>
+
+    <color name="status_scheduled">#2196F3</color>
+    <color name="status_completed">#4CAF50</color>
+    <color name="status_confirmed">#4CAF50</color>
+    <color name="status_cancelled">#F44336</color>
+    <color name="status_no_show">#FF5722</color>
+    <color name="status_pending">#FF9800</color>
+
+    <color name="colorConfirmed">@color/status_confirmed</color>
+
+    <color name="transparent">#00000000</color>
+</resources>

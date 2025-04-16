@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Doctor Clinic</string>
+    
+    <!-- Navigation -->
+    <string name="home">Home</string>
+    <string name="patients">Patients</string>
+    <string name="appointments">Appointments</string>
+    <string name="settings">Settings</string>
+    
+    <!-- Auth -->
+    <string name="login">Login</string>
+    <string name="logout">Logout</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="login_as_doctor">Login as Doctor</string>
+    <string name="login_success">Login successful</string>
+    <string name="login_error">Login failed: %1$s</string>
+    
+    <!-- Patients -->
+    <string name="search_patients">Search patients…</string>
+    <string name="no_patients">No patients found</string>
+    <string name="add_patient">Add Patient</string>
+    <string name="patient_details">Patient Details</string>
+    <string name="edit_patient">Edit Patient</string>
+    <string name="medical_history">Medical History</string>
+    <string name="contact_info">Contact Information</string>
+    
+    <!-- Appointments -->
+    <string name="search_appointments">Search appointments…</string>
+    <string name="no_appointments">No appointments found</string>
+    <string name="add_appointment">Add Appointment</string>
+    <string name="appointment_details">Appointment Details</string>
+    <string name="reschedule">Reschedule</string>
+    <string name="cancel_appointment">Cancel Appointment</string>
+    <string name="complete_appointment">Complete Appointment</string>
+    <string name="upcoming_appointments">Upcoming Appointments</string>
+    <string name="all_appointments">All Appointments</string>
+    <string name="scheduled">Scheduled</string>
+    <string name="confirmed">Confirmed</string>
+    <string name="completed">Completed</string>
+    <string name="cancelled">Cancelled</string>
+    <string name="no_show">No Show</string>
+    <string name="start_call">Start Call</string>
+    
+    <!-- General -->
+    <string name="loading">Loading…</string>
+    <string name="error_occurred">An error occurred</string>
+    <string name="retry">Retry</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="confirm">Confirm</string>
+    <string name="delete">Delete</string>
+    <string name="pull_to_refresh">Pull down to refresh</string>
+</resources>

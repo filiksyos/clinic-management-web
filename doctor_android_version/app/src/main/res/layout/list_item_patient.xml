@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardElevation="1dp"
+    app:strokeWidth="0dp"
+    app:cardCornerRadius="8dp"
+    android:layout_marginStart="4dp"
+    android:layout_marginEnd="4dp"
+    android:layout_marginTop="8dp"
+    android:layout_marginBottom="8dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <!-- Patient Icon -->
+        <FrameLayout
+            android:id="@+id/frameLayoutPatientIcon"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/circular_background_blue"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/imageViewPatientIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_patients_placeholder"
+                android:contentDescription="Patient Icon"/>
+        </FrameLayout>
+
+        <!-- Patient Info -->
+        <TextView
+            android:id="@+id/textViewPatientName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:textAppearance="?attr/textAppearanceSubtitle1"
+            android:textColor="@color/textColorPrimary"
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@id/frameLayoutPatientIcon"
+            app:layout_constraintTop_toTopOf="@id/frameLayoutPatientIcon"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="John Doe" />
+
+        <TextView
+            android:id="@+id/textViewPatientDetails"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textAppearance="?attr/textAppearanceBody2"
+            android:textColor="@color/textColorSecondary"
+            app:layout_constraintTop_toBottomOf="@+id/textViewPatientName"
+            app:layout_constraintStart_toStartOf="@+id/textViewPatientName"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="Male, 35 years" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView> 

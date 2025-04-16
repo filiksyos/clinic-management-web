@@ -1,0 +1,113 @@
+plugins {
+    alias(libs.plugins.com.android.application)
+    alias(libs.plugins.org.jetbrains.kotlin.android)
+    alias(libs.plugins.androidx.navigation.safeargs)
+    alias(libs.plugins.com.google.devtools.ksp)
+    id('kotlin-parcelize')
+    id("com.google.gms.google-services") // Google Play Services
+    id("com.google.firebase.crashlytics") // Google Play Services
+}
+android {
+    buildFeatures {
+        viewBinding = true
+        buildConfig = true // Enable BuildConfig generation
+    }
+    compileSdk appCompileSdkVersion
+    namespace "com.ferhatozcelik.androidmvvmtemplate"
+    defaultConfig {
+        applicationId "com.ferhatozcelik.androidmvvmtemplate"
+        minSdkVersion appMinSdkVersion
+        targetSdkVersion appTargetSdkVersion
+        versionCode 1
+        versionName "1.0.0"
+        multiDexEnabled true
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+        
+        // Get Supabase credentials from local.properties
+        def localProperties = new Properties()
+        localProperties.load(new FileInputStream(rootProject.file("local.properties")))
+        
+        buildConfigField "String", "SUPABASE_URL", "\"${localProperties.getProperty('SUPABASE_URL')}\""
+        buildConfigField "String", "SUPABASE_ANON_KEY", "\"${localProperties.getProperty('SUPABASE_ANON_KEY')}\""
+    }
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+dependencies {
+
+    // Kotlin
+    implementation(libs.kotlin.stdlib)
+    implementation(libs.core.ktx)
+    implementation(libs.appcompat)
+
+    // Material Design
+    implementation(libs.material)
+    implementation libs.androidx.viewpager2
+    
+    // RecyclerView
+    implementation(libs.androidx.recyclerview)
+
+    // ConstraintLayout
+    implementation(libs.constraintlayout)
+
+    // Legacy Support Library
+    implementation(libs.androidx.legacy.support.v4)
+
+    // Multidex
+    implementation(libs.androidx.multidex)
+
+    // DeSugar Use Java 8 language features and APIs
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
+
+    // Koin DI
+    implementation(libs.koin.core)
+    implementation(libs.koin.android)
+
+    // Room
+    implementation(libs.room)
+    implementation(libs.room.runtime)
+    ksp(libs.room.compiler)
+
+    // Coroutines
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.android)
+
+    // Lifecycle Scopes
+    implementation(libs.lifecycle)
+    implementation(libs.lifecycle.runtime)
+
+    // Retrofit & OkHttp - make sure these are explicitly included
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.logging.interceptor)
+    implementation(libs.gson)
+
+    // Navigation
+    implementation(libs.navigation)
+    implementation(libs.navigation.ui)
+
+    // Glide
+    implementation(libs.glide)
+    ksp(libs.ksp)
+
+    // Firebase
+    implementation platform(libs.firebase)
+    implementation(libs.analytics)
+    implementation(libs.crashlytics)
+    implementation("com.google.firebase:firebase-messaging-ktx")
+    
+    // Supabase - Using direct Retrofit approach instead
+    // implementation platform(libs.supabase.bom)
+    // implementation libs.bundles.supabase
+}
