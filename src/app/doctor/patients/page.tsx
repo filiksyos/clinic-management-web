@@ -4,10 +4,18 @@ import { useEffect, useState } from "react";
 import { getPatients } from "@/lib/supabase";
 import { Card } from "@/components/ui/card";
 import { FaUserInjured } from "react-icons/fa";
-import Link from "next/link";
+
+// Define Patient interface
+interface Patient {
+  id: string;
+  first_name: string;
+  last_name: string;
+  gender?: string;
+  age?: number;
+}
 
 export default function DoctorPatients() {
-  const [patients, setPatients] = useState<any[]>([]);
+  const [patients, setPatients] = useState<Patient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 

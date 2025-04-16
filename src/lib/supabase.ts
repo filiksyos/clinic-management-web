@@ -30,7 +30,7 @@ export interface Appointment {
 // Role type and authentication helpers
 export type UserRole = 'receptionist' | 'doctor';
 
-export async function getUserRole(userId: string): Promise<UserRole> {
+export async function getUserRole(): Promise<UserRole> {
   try {
     const { data, error } = await supabase.auth.getUser();
     

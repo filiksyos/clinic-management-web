@@ -6,6 +6,20 @@ import { Card } from "@/components/ui/card";
 import { FaCalendarCheck } from "react-icons/fa";
 import Link from "next/link";
 
+// Define interface for appointment data
+interface AppointmentWithPatient {
+  id: string;
+  appointment_date: string;
+  status: string;
+  notes?: string;
+  patients: {
+    first_name: string;
+    last_name: string;
+    gender?: string;
+    age?: number;
+  };
+}
+
 // Appointment status badge component
 const StatusBadge = ({ status }: { status: string }) => {
   const getStatusColor = (status: string) => {
@@ -31,7 +45,7 @@ const StatusBadge = ({ status }: { status: string }) => {
 };
 
 export default function DoctorAppointments() {
-  const [appointments, setAppointments] = useState<any[]>([]);
+  const [appointments, setAppointments] = useState<AppointmentWithPatient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -70,7 +84,7 @@ export default function DoctorAppointments() {
     <div className="pt-2 px-[18px]">
       <div className="flex justify-between pb-6">
         <h1 className="font-semibold text-gray-800 uppercase tracking-wide">
-          Today's Appointments
+          Today&apos;s Appointments
         </h1>
         <Link 
           href="/doctor/appointments/upcoming" 
@@ -143,7 +157,7 @@ export default function DoctorAppointments() {
             <div className="text-center py-8">
               <FaCalendarCheck className="mx-auto text-gray-400 text-4xl mb-4" />
               <h3 className="text-xl font-medium text-gray-700 mb-2">No Appointments Today</h3>
-              <p className="text-gray-500">You don't have any appointments scheduled for today.</p>
+              <p className="text-gray-500">You don&apos;t have any appointments scheduled for today.</p>
             </div>
           )}
         </Card>

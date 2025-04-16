@@ -156,7 +156,7 @@ export default function SideBar() {
 
                 <CollapsibleMenu title="Appointments" icon={<FaCalendarCheck />}>
                   <NavLink href="/doctor/appointments">
-                    Today's Appointments
+                    Today&apos;s Appointments
                   </NavLink>
                   <NavLink href="/doctor/appointments/upcoming">
                     Upcoming Appointments

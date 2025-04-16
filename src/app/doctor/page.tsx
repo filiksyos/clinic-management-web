@@ -3,8 +3,19 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { FaCalendarCheck, FaUserInjured } from "react-icons/fa";
-import { getPatients, getAppointments, getTodaysAppointments } from "@/lib/supabase";
+import { getPatients, getTodaysAppointments } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+
+// Define appointment interface
+interface AppointmentWithPatient {
+  id: string;
+  appointment_date: string;
+  status: string;
+  patients: {
+    first_name: string;
+    last_name: string;
+  };
+}
 
 const DashboardCard = ({
   title,
@@ -36,22 +47,19 @@ const DashboardCard = ({
 
 export default function DoctorDashboard() {
   const [patientsCount, setPatientsCount] = useState<number>(0);
-  const [appointmentsCount, setAppointmentsCount] = useState<number>(0);
-  const [todayAppointments, setTodayAppointments] = useState<any[]>([]);
+  const [todayAppointments, setTodayAppointments] = useState<AppointmentWithPatient[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const { user } = useAuth();
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const [patientsData, appointmentsData, todayData] = await Promise.all([
+        const [patientsData, todayData] = await Promise.all([
           getPatients(),
-          getAppointments(),
           getTodaysAppointments()
         ]);
         
         setPatientsCount(patientsData.length);
-        setAppointmentsCount(appointmentsData.length);
         setTodayAppointments(todayData);
       } catch (error) {
         console.error("Error fetching dashboard data:", error);

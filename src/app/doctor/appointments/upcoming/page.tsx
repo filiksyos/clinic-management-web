@@ -6,6 +6,20 @@ import { Card } from "@/components/ui/card";
 import { FaCalendarCheck } from "react-icons/fa";
 import Link from "next/link";
 
+// Define interface for appointment data
+interface AppointmentWithPatient {
+  id: string;
+  appointment_date: string;
+  status: string;
+  notes?: string;
+  patients: {
+    first_name: string;
+    last_name: string;
+    gender?: string;
+    age?: number;
+  };
+}
+
 // Appointment status badge component
 const StatusBadge = ({ status }: { status: string }) => {
   const getStatusColor = (status: string) => {
@@ -31,7 +45,7 @@ const StatusBadge = ({ status }: { status: string }) => {
 };
 
 export default function UpcomingAppointments() {
-  const [appointments, setAppointments] = useState<any[]>([]);
+  const [appointments, setAppointments] = useState<AppointmentWithPatient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -60,6 +74,10 @@ export default function UpcomingAppointments() {
   }, []);
 
   // Group appointments by date
+  interface GroupedAppointments {
+    [date: string]: AppointmentWithPatient[];
+  }
+  
   const groupedAppointments = appointments.reduce((groups, appointment) => {
     const date = new Date(appointment.appointment_date).toLocaleDateString(undefined, { 
       weekday: 'long', 
@@ -74,7 +92,7 @@ export default function UpcomingAppointments() {
     
     groups[date].push(appointment);
     return groups;
-  }, {} as Record<string, any[]>);
+  }, {} as GroupedAppointments);
 
   // Format time for display
   const formatTime = (dateString: string) => {
@@ -92,7 +110,7 @@ export default function UpcomingAppointments() {
           href="/doctor/appointments" 
           className="text-sm text-blue-600 hover:text-blue-800"
         >
-          View Today's Appointments
+          View Today&apos;s Appointments
         </Link>
       </div>
 
@@ -161,7 +179,7 @@ export default function UpcomingAppointments() {
             <div className="text-center py-8">
               <FaCalendarCheck className="mx-auto text-gray-400 text-4xl mb-4" />
               <h3 className="text-xl font-medium text-gray-700 mb-2">No Upcoming Appointments</h3>
-              <p className="text-gray-500">You don't have any upcoming appointments scheduled.</p>
+              <p className="text-gray-500">You don&apos;t have any upcoming appointments scheduled.</p>
             </div>
           </Card>
         )}
