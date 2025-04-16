@@ -3,6 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     
     <item
+        android:id="@+id/action_refresh"
+        android:icon="@android:drawable/ic_popup_sync"
+        android:title="Refresh"
+        android:orderInCategory="90"
+        app:showAsAction="ifRoom" />
+    
+    <item
         android:id="@+id/action_logout"
         android:title="Logout"
         android:orderInCategory="100"

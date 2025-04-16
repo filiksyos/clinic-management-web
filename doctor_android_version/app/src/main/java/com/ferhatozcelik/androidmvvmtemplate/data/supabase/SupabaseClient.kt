@@ -1,9 +1,12 @@
 package com.ferhatozcelik.androidmvvmtemplate.data.supabase
 
+import android.content.Context
 import android.util.Log
 import com.ferhatozcelik.androidmvvmtemplate.BuildConfig
+import com.ferhatozcelik.androidmvvmtemplate.util.NetworkUtil
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
+import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -11,6 +14,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
+import java.io.FileNotFoundException
 import java.util.concurrent.TimeUnit
 
 // Data classes for authentication
@@ -103,6 +107,11 @@ object SupabaseManager {
     // Session data
     private var currentAccessToken: String? = null
     private var currentUser: SupabaseUser? = null
+    
+    // Cache for appointments
+    private var cachedAppointments: List<Appointment>? = null
+    private const val APPOINTMENTS_CACHE_FILE = "appointments_cache.json"
+    private var applicationContext: Context? = null
 
     // Create HTTP client with logging
     private val httpClient = OkHttpClient.Builder()
@@ -130,12 +139,17 @@ object SupabaseManager {
      * Initialize with credentials from BuildConfig
      * Not needed as we're using BuildConfig directly, but kept for compatibility
      */
-    fun initialize(url: String, anonKey: String) {
+    fun initialize(url: String, anonKey: String, context: Context) {
         // Already initialized in object declaration
         Log.d(TAG, "Supabase initialized with URL: $url")
         
+        applicationContext = context.applicationContext
+        
         // Try to restore session from SessionManager
         restoreSession()
+        
+        // Try to load appointments from cache
+        loadAppointmentsFromCache()
     }
     
     /**
@@ -339,46 +353,91 @@ object SupabaseManager {
      */
     suspend fun getAppointments(): Result<List<Appointment>> = withContext(Dispatchers.IO) {
         try {
+            // If we have an application context, check for network connectivity
+            if (applicationContext != null) {
+                val isConnected = NetworkUtil.hasInternetConnection(applicationContext!!)
+                
+                if (!isConnected) {
+                    Log.d(TAG, "No internet connection, using cached appointments")
+                    cachedAppointments?.let {
+                        Log.d(TAG, "Returning ${it.size} cached appointments")
+                        return@withContext Result.success(it)
+                    } ?: run {
+                        Log.e(TAG, "No cached appointments available")
+                        return@withContext Result.failure(Exception("No internet connection and no cached data available. Please connect to the internet."))
+                    }
+                }
+            }
+            
             // Try to restore session if not authenticated
             if (currentAccessToken == null) {
                 restoreSession()
                 
-                // If still not authenticated after restore attempt, return error
+                // If still not authenticated after restore attempt, try using cached data
                 if (currentAccessToken == null) {
-                    Log.e(TAG, "Not authenticated. Login required.")
-                    return@withContext Result.failure(Exception("Authentication required. Please log in."))
+                    Log.e(TAG, "Not authenticated. Checking for cached data.")
+                    cachedAppointments?.let {
+                        Log.d(TAG, "Returning ${it.size} cached appointments instead of requiring login")
+                        return@withContext Result.success(it)
+                    } ?: run {
+                        Log.e(TAG, "Not authenticated and no cached data available")
+                        return@withContext Result.failure(Exception("Authentication required. Please log in."))
+                    }
                 }
             }
             
             try {
                 val appointments = appointmentsApi.getAllAppointments(authToken = getAuthHeader())
                 Log.d(TAG, "Retrieved ${appointments.size} appointments")
+                
+                // Cache the appointments for offline use
+                cachedAppointments = appointments
+                saveAppointmentsToCache(appointments)
+                
                 return@withContext Result.success(appointments)
             } catch (e: Exception) {
-                // If we get a 401, try logging in again with stored credentials
+                // If we get a 401, check for cached data before redirecting
                 if (e.message?.contains("401") == true) {
-                    Log.w(TAG, "Authentication token expired. Attempting to refresh session.")
+                    Log.w(TAG, "Authentication token expired. Checking for cached data.")
                     
                     // Clear current token as it's invalid
                     currentAccessToken = null
                     
-                    // Try to get an email from session manager
+                    // Try to use cached data first
+                    cachedAppointments?.let {
+                        Log.d(TAG, "Returning ${it.size} cached appointments instead of requiring re-login")
+                        return@withContext Result.success(it)
+                    }
+                    
+                    // If no cached data, redirect to login
                     val email = SessionManager.userEmail.value
                     
                     if (!email.isNullOrEmpty()) {
-                        // We need to redirect user to login screen
                         return@withContext Result.failure(Exception("Session expired. Please log in again."))
                     } else {
                         return@withContext Result.failure(Exception("Authentication required. Please log in."))
                     }
                 }
                 
-                // For other errors, just return the failure
-                Log.e(TAG, "Error fetching appointments: ${e.message}", e)
+                // For network or other errors, try to use cached data
+                Log.e(TAG, "Error fetching appointments: ${e.message}, checking for cached data", e)
+                cachedAppointments?.let {
+                    Log.d(TAG, "Returning ${it.size} cached appointments due to fetch error")
+                    return@withContext Result.success(it)
+                }
+                
+                // If no cached data, return the error
                 return@withContext Result.failure(e)
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error in getAppointments: ${e.message}", e)
+            Log.e(TAG, "Error in getAppointments: ${e.message}, checking for cached data", e)
+            
+            // Try to use cached data as a last resort
+            cachedAppointments?.let {
+                Log.d(TAG, "Returning ${it.size} cached appointments as fallback")
+                return@withContext Result.success(it)
+            }
+            
             return@withContext Result.failure(e)
         }
     }
@@ -388,16 +447,106 @@ object SupabaseManager {
      */
     suspend fun getScheduledAppointments(): Result<List<Appointment>> = withContext(Dispatchers.IO) {
         try {
-            if (currentAccessToken == null) {
-                return@withContext Result.failure(Exception("Not authenticated"))
+            // Check for offline mode first
+            if (applicationContext != null) {
+                val isConnected = NetworkUtil.hasInternetConnection(applicationContext!!)
+                
+                if (!isConnected) {
+                    Log.d(TAG, "No internet connection, filtering cached appointments for scheduled status")
+                    cachedAppointments?.let { allAppointments ->
+                        val scheduled = allAppointments.filter { it.status == Appointment.STATUS_SCHEDULED }
+                        Log.d(TAG, "Returning ${scheduled.size} cached scheduled appointments")
+                        return@withContext Result.success(scheduled)
+                    } ?: run {
+                        Log.e(TAG, "No cached appointments available in offline mode")
+                        return@withContext Result.failure(Exception("No internet connection and no cached data available. Please connect to the internet."))
+                    }
+                }
             }
             
-            val appointments = appointmentsApi.getScheduledAppointments(authToken = getAuthHeader())
-            Log.d(TAG, "Retrieved ${appointments.size} scheduled appointments")
-            Result.success(appointments)
+            // If we have a network connection and no token, try to restore
+            if (currentAccessToken == null) {
+                restoreSession()
+                
+                // If still not authenticated, try using cached data
+                if (currentAccessToken == null) {
+                    cachedAppointments?.let { allAppointments ->
+                        val scheduled = allAppointments.filter { it.status == Appointment.STATUS_SCHEDULED }
+                        Log.d(TAG, "Not authenticated. Returning ${scheduled.size} cached scheduled appointments")
+                        return@withContext Result.success(scheduled)
+                    } ?: run {
+                        return@withContext Result.failure(Exception("Not authenticated"))
+                    }
+                }
+            }
+            
+            try {
+                val appointments = appointmentsApi.getScheduledAppointments(authToken = getAuthHeader())
+                Log.d(TAG, "Retrieved ${appointments.size} scheduled appointments")
+                return@withContext Result.success(appointments)
+            } catch (e: Exception) {
+                // First try to use cached data for scheduled appointments
+                cachedAppointments?.let { allAppointments ->
+                    val scheduled = allAppointments.filter { it.status == Appointment.STATUS_SCHEDULED }
+                    Log.d(TAG, "Error fetching scheduled appointments. Using ${scheduled.size} from cache")
+                    return@withContext Result.success(scheduled)
+                }
+                
+                // If no cached data, return the error
+                Log.e(TAG, "Error fetching scheduled appointments: ${e.message}", e)
+                return@withContext Result.failure(e)
+            }
         } catch (e: Exception) {
-            Log.e(TAG, "Error fetching scheduled appointments: ${e.message}", e)
-            Result.failure(e)
+            // Last resort: try cached appointments
+            cachedAppointments?.let { allAppointments ->
+                val scheduled = allAppointments.filter { it.status == Appointment.STATUS_SCHEDULED }
+                Log.d(TAG, "Exception in getScheduledAppointments. Using ${scheduled.size} from cache")
+                return@withContext Result.success(scheduled)
+            }
+            
+            Log.e(TAG, "Error in getScheduledAppointments: ${e.message}", e)
+            return@withContext Result.failure(e)
+        }
+    }
+    
+    /**
+     * Save appointments to cache file
+     */
+    private fun saveAppointmentsToCache(appointments: List<Appointment>) {
+        applicationContext?.let { context ->
+            try {
+                val gson = Gson()
+                val json = gson.toJson(appointments)
+                context.openFileOutput(APPOINTMENTS_CACHE_FILE, Context.MODE_PRIVATE).use {
+                    it.write(json.toByteArray())
+                }
+                Log.d(TAG, "Saved ${appointments.size} appointments to cache")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error saving appointments to cache: ${e.message}", e)
+            }
+        }
+    }
+    
+    /**
+     * Load appointments from cache file
+     */
+    private fun loadAppointmentsFromCache() {
+        applicationContext?.let { context ->
+            try {
+                context.openFileInput(APPOINTMENTS_CACHE_FILE).use { inputStream ->
+                    val json = inputStream.bufferedReader().use { it.readText() }
+                    val gson = Gson()
+                    val type = object : TypeToken<List<Appointment>>() {}.type
+                    cachedAppointments = gson.fromJson(json, type)
+                    Log.d(TAG, "Loaded ${cachedAppointments?.size ?: 0} appointments from cache")
+                }
+            } catch (e: FileNotFoundException) {
+                Log.d(TAG, "No cache file found for appointments")
+                cachedAppointments = null
+            } catch (e: Exception) {
+                Log.e(TAG, "Error loading appointments from cache: ${e.message}", e)
+                cachedAppointments = null
+            }
         }
     }
     

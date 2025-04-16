@@ -49,7 +49,7 @@ class App : Application() {
             Log.d(TAG, "Session validation result: $isSessionValid")
             
             // Explicitly initialize SupabaseManager with URL and key from BuildConfig
-            SupabaseManager.initialize(SupabaseManager.supabaseUrl, SupabaseManager.supabaseAnonKey)
+            SupabaseManager.initialize(SupabaseManager.supabaseUrl, SupabaseManager.supabaseAnonKey, this)
             Log.d(TAG, "SupabaseManager initialized with URL: ${SupabaseManager.supabaseUrl}")
             
             startKoin {

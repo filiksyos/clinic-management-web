@@ -15,6 +15,8 @@ import com.ferhatozcelik.androidmvvmtemplate.data.supabase.SessionManager
 import com.ferhatozcelik.androidmvvmtemplate.data.supabase.SupabaseManager
 import com.ferhatozcelik.androidmvvmtemplate.databinding.ActivityMainBinding
 import com.ferhatozcelik.androidmvvmtemplate.ui.base.BaseActivity
+import com.ferhatozcelik.androidmvvmtemplate.util.ConnectivityHelper
+import com.ferhatozcelik.androidmvvmtemplate.util.NetworkUtil
 import kotlinx.coroutines.launch
 
 class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::inflate) {
@@ -25,8 +27,33 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         super.onCreate(savedInstanceState)
         Log.i(TAG, "onCreate()")
 
+        checkConnectivity()
         setupNavigation()
         checkLoginStatus()
+    }
+    
+    private fun checkConnectivity() {
+        // Check if we're connected to the internet
+        if (!NetworkUtil.hasInternetConnection(this)) {
+            // Show dialog to prompt user to connect
+            ConnectivityHelper.showConnectivityDialog(
+                context = this,
+                onRetry = {
+                    // Refresh data if we're now connected
+                    if (NetworkUtil.hasInternetConnection(this)) {
+                        refreshData()
+                    }
+                }
+            )
+        }
+    }
+    
+    private fun refreshData() {
+        // When connectivity is restored, we could refresh data here
+        // For now, let's just show a toast message
+        Toast.makeText(this, "Connected to the internet", Toast.LENGTH_SHORT).show()
+        
+        // The viewModels will handle refreshing data when their methods are called
     }
 
     private fun setupNavigation() {
@@ -56,6 +83,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         return when (item.itemId) {
             R.id.action_logout -> {
                 performLogout()
+                true
+            }
+            R.id.action_refresh -> {
+                // Check connectivity and refresh data
+                ConnectivityHelper.checkConnectivityAndPrompt(this) {
+                    refreshData()
+                }
                 true
             }
             else -> super.onOptionsItemSelected(item)

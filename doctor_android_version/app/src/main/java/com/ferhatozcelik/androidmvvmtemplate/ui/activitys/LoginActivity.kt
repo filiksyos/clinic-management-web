@@ -10,6 +10,8 @@ import com.ferhatozcelik.androidmvvmtemplate.data.supabase.SessionManager
 import com.ferhatozcelik.androidmvvmtemplate.data.supabase.SupabaseManager
 import com.ferhatozcelik.androidmvvmtemplate.databinding.ActivityLoginBinding
 import com.ferhatozcelik.androidmvvmtemplate.ui.base.BaseActivity
+import com.ferhatozcelik.androidmvvmtemplate.util.ConnectivityHelper
+import com.ferhatozcelik.androidmvvmtemplate.util.NetworkUtil
 import kotlinx.coroutines.launch
 
 class LoginActivity : BaseActivity<ActivityLoginBinding>(ActivityLoginBinding::inflate) {
@@ -25,6 +27,9 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>(ActivityLoginBinding::i
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate() - Starting LoginActivity")
+        
+        // Check for network connectivity
+        checkConnectivity()
 
         // Check if already logged in
         if (SessionManager.validateSession()) {
@@ -42,8 +47,37 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>(ActivityLoginBinding::i
         // Set up the login button click listener
         binding.loginButton.setOnClickListener {
             Log.d(TAG, "Login button clicked")
-            performLogin()
+            if (checkConnectivity()) {
+                performLogin()
+            }
         }
+    }
+    
+    private fun checkConnectivity(): Boolean {
+        if (!NetworkUtil.hasInternetConnection(this)) {
+            ConnectivityHelper.showConnectivityDialog(
+                context = this,
+                onRetry = {
+                    // If connection is established after retry, try to log in again
+                    if (NetworkUtil.hasInternetConnection(this)) {
+                        performLogin()
+                    }
+                },
+                onCancel = {
+                    // Allow user to continue without connectivity
+                    // If they have a cached session, they might be able to use offline features
+                    if (SessionManager.validateSession()) {
+                        navigateToMainActivity()
+                    } else {
+                        Toast.makeText(this, 
+                            "You need to connect to the internet to log in for the first time", 
+                            Toast.LENGTH_LONG).show()
+                    }
+                }
+            )
+            return false
+        }
+        return true
     }
 
     private fun performLogin() {
@@ -107,12 +141,28 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>(ActivityLoginBinding::i
                     },
                     onFailure = { error ->
                         Log.e(TAG, "Login error: ${error.message}", error)
-                        // Login failed, show error message
-                        Toast.makeText(
-                            this@LoginActivity,
-                            "Login failed: ${error.localizedMessage}",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        
+                        // Check if the error is related to connectivity
+                        if (error.message?.contains("Unable to resolve host") == true || 
+                            error.message?.contains("Failed to connect") == true) {
+                            
+                            // It's a network connectivity issue
+                            Toast.makeText(
+                                this@LoginActivity,
+                                "Network error. Please check your internet connection.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            
+                            // Show connectivity dialog
+                            checkConnectivity()
+                        } else {
+                            // Other login error
+                            Toast.makeText(
+                                this@LoginActivity,
+                                "Login failed: ${error.localizedMessage}",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                         
                         // Hide loading indicator and re-enable login button
                         binding.loginProgressBar.visibility = View.GONE
